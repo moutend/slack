@@ -201,8 +201,8 @@ func (a *APIClient) GetAllChannelsContext(ctx context.Context) ([]slack.Channel,
 			break
 		}
 
-		a.debug.Println("GetAllChannelsContext: sleep 50 ms because of rate/ limit")
-		time.Sleep(50 * time.Millisecond)
+		a.debug.Println("GetAllChannelsContext: sleep 100 ms because of rate/ limit")
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	cache.ExpiredAt = time.Now().UTC().Add(a.channelsCacheDuration)
@@ -221,7 +221,7 @@ func (a *APIClient) GetAllChannelsContext(ctx context.Context) ([]slack.Channel,
 }
 
 type replyInfo struct {
-	UpdatedAt time.Time `json:"updated_at"`
+	CompletedAt time.Time `json:"completed_at"`
 }
 
 func (a *APIClient) loadReplyInfo(channelID string) (replyInfo, error) {
@@ -291,8 +291,27 @@ func (a *APIClient) saveReplyCache(channelID string, cache replyCache) error {
 	return nil
 }
 
+// GetAllOfflineRepliesContext retrieves all messages associated with the channel.
+func (a *APIClient) GetAllOfflineRepliesContext(ctx context.Context, channelID, timestamp string) ([]slack.Message, error) {
+	cache, err := a.loadReplyCache(channelID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	a.debug.Println("GetAllOfflineRepliesContext: use cache")
+
+	messages := []slack.Message{}
+
+	for _, m := range cache[timestamp].Messages {
+		messages = append(messages, m)
+	}
+
+	return messages, nil
+}
+
 // GetAllRepliesContext retrieves all messages associated with the channel.
-func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timestamp string, forceFetch bool) ([]slack.Message, error) {
+func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timestamp string) ([]slack.Message, error) {
 	info, err := a.loadReplyInfo(channelID)
 
 	if err != nil {
@@ -303,17 +322,6 @@ func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timesta
 
 	if err != nil {
 		return nil, err
-	}
-	if !forceFetch && !info.UpdatedAt.IsZero() && time.Now().UTC().Sub(info.UpdatedAt) < a.replyCacheDuration {
-		a.debug.Println("GetAllRepliesContext: skip fetch")
-
-		messages := []slack.Message{}
-
-		for _, m := range cache[timestamp].Messages {
-			messages = append(messages, m)
-		}
-
-		return messages, nil
 	}
 	if _, ok := cache[timestamp]; !ok {
 		cache[timestamp] = struct {
@@ -329,6 +337,12 @@ func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timesta
 	defer func() {
 		a.saveReplyInfo(channelID, info)
 	}()
+
+	sleep := 100 * time.Millisecond
+
+	if !info.CompletedAt.IsZero() {
+		sleep = 10 * time.Millisecond
+	}
 
 	parameter := &slack.GetConversationRepliesParameters{
 		ChannelID: channelID,
@@ -348,7 +362,7 @@ func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timesta
 
 			if errorCount < 10 {
 				a.debug.Println("GetAllRepliesContext: sleep because error:", err)
-				time.Sleep(25 * time.Millisecond)
+				time.Sleep(250 * time.Millisecond)
 				continue
 			} else {
 				return nil, fmt.Errorf("client: failed to get messages: %w", err)
@@ -363,15 +377,15 @@ func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timesta
 		if parameter.Cursor == "" || !hasMore {
 			break
 		}
-		if !info.UpdatedAt.IsZero() {
+		if !info.CompletedAt.IsZero() {
 			break
 		}
 
-		a.debug.Println("GetAllRepliesContext: sleep 50 ms because of rate/ limit")
-		time.Sleep(50 * time.Millisecond)
+		a.debug.Printf("GetAllRepliesContext: sleep %v because of rate/ limit", sleep)
+		time.Sleep(sleep * time.Millisecond)
 	}
 
-	info.UpdatedAt = time.Now().UTC()
+	info.CompletedAt = time.Now().UTC()
 
 	messages := []slack.Message{}
 
@@ -383,7 +397,7 @@ func (a *APIClient) GetAllRepliesContext(ctx context.Context, channelID, timesta
 }
 
 type conversationInfo struct {
-	UpdatedAt time.Time `json:"updated_at"`
+	CompletedAt time.Time `json:"completed_at"`
 }
 
 func (a *APIClient) loadConversationInfo(channelID string) (conversationInfo, error) {
@@ -449,6 +463,36 @@ func (a *APIClient) saveConversationCache(channelID string, cache conversationCa
 	return nil
 }
 
+// GetAllOfflineConversationsContext retrieves all messages associated with the channel.
+func (a *APIClient) GetAllOfflineConversationsContext(ctx context.Context, channelID string) ([]slack.Message, error) {
+	cache, err := a.loadConversationCache(channelID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	a.debug.Println("GetAllOfflineConversationsContext: use cache")
+
+	rc, err := a.loadReplyCache(channelID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	messages := []slack.Message{}
+
+	for _, m := range cache {
+		messages = append(messages, m)
+	}
+	for _, ms := range rc {
+		for _, m := range ms.Messages {
+			messages = append(messages, m)
+		}
+	}
+
+	return messages, nil
+}
+
 // GetAllConversationsContext retrieves all messages associated with the channel.
 func (a *APIClient) GetAllConversationsContext(ctx context.Context, channelID string, forceFetch bool) ([]slack.Message, error) {
 	info, err := a.loadConversationInfo(channelID)
@@ -462,28 +506,6 @@ func (a *APIClient) GetAllConversationsContext(ctx context.Context, channelID st
 	if err != nil {
 		return nil, err
 	}
-	if !forceFetch && !info.UpdatedAt.IsZero() && time.Now().UTC().Sub(info.UpdatedAt) < a.conversationsCacheDuration {
-		a.debug.Println("GetAllConversationsContext: use cache")
-
-		rc, err := a.loadReplyCache(channelID)
-
-		if err != nil {
-			return nil, err
-		}
-
-		messages := []slack.Message{}
-
-		for _, m := range cache {
-			messages = append(messages, m)
-		}
-		for _, ms := range rc {
-			for _, m := range ms.Messages {
-				messages = append(messages, m)
-			}
-		}
-
-		return messages, nil
-	}
 
 	a.debug.Println("GetAllConversationsContext: fetch conversations", channelID)
 
@@ -491,6 +513,12 @@ func (a *APIClient) GetAllConversationsContext(ctx context.Context, channelID st
 	defer func() {
 		a.saveConversationInfo(channelID, info)
 	}()
+
+	sleep := 100 * time.Millisecond
+
+	if !info.CompletedAt.IsZero() {
+		sleep = 10 * time.Millisecond
+	}
 
 	timestamps := []string{}
 	parameter := &slack.GetConversationHistoryParameters{
@@ -510,7 +538,8 @@ func (a *APIClient) GetAllConversationsContext(ctx context.Context, channelID st
 
 			if errorCount < 10 {
 				a.debug.Println("GetAllConversationsContext: sleep because error:", err)
-				time.Sleep(25 * time.Millisecond)
+				time.Sleep(250 * time.Millisecond)
+
 				continue
 			} else {
 				return nil, fmt.Errorf("client: failed to get messages: %w", err)
@@ -529,30 +558,42 @@ func (a *APIClient) GetAllConversationsContext(ctx context.Context, channelID st
 		if parameter.Cursor == "" || !result.HasMore {
 			break
 		}
-		if !info.UpdatedAt.IsZero() {
+		if !info.CompletedAt.IsZero() {
+			if len(timestamps) > 10 {
+				timestamps = timestamps[:10]
+			}
 			break
 		}
 
-		a.debug.Println("GetAllConversationsContext: sleep 50 ms because of rate / limit")
-		time.Sleep(50 * time.Millisecond)
+		a.debug.Printf("GetAllConversationsContext: sleep %v because of rate / limit", sleep)
+		time.Sleep(sleep * time.Millisecond)
 	}
 
 	messages := []slack.Message{}
 
 	for _, timestamp := range timestamps {
-		replies, err := a.GetAllRepliesContext(ctx, channelID, timestamp, info.UpdatedAt.IsZero())
+		_, err := a.GetAllRepliesContext(ctx, channelID, timestamp)
 
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		messages = append(messages, replies...)
+	reply, err := a.loadReplyCache(channelID)
+
+	if err != nil {
+		return nil, err
+	}
+	for _, ms := range reply {
+		for _, m := range ms.Messages {
+			messages = append(messages, m)
+		}
 	}
 	for _, m := range cache {
 		messages = append(messages, m)
 	}
 
-	info.UpdatedAt = time.Now().UTC()
+	info.CompletedAt = time.Now().UTC()
 
 	return messages, nil
 }
