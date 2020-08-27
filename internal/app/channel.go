@@ -1,72 +1,67 @@
 package app
 
 import (
-	"sort"
+	"context"
 
 	"github.com/spf13/cobra"
+	"github.com/volatiletech/sqlboiler/queries"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 var channelCommand = &cobra.Command{
 	Use:     "channel",
 	Aliases: []string{"c", "channels"},
-	Short:   "print available channels",
+	Short:   "print channels",
 	RunE:    channelCommandRunE,
 }
 
 func channelCommandRunE(cmd *cobra.Command, args []string) error {
-	users, err := api.GetAllUsersContext(cmd.Context())
+	var channels []string
 
+	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
+		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+			goto LOAD_CACHE
+		}
+		if err := client.FetchUsers(ctx, tx); err != nil {
+			return err
+		}
+		if err := client.FetchChannels(ctx, tx); err != nil {
+			return err
+		}
+
+	LOAD_CACHE:
+
+		query := `
+SELECT
+  CASE WHEN c.name = ''
+  THEN
+    CASE WHEN u.name IS NOT NULL THEN '@' || u.name ELSE '' END
+  ELSE
+    c.name
+  END AS name
+FROM channels c
+LEFT JOIN users u ON u.id = c.user
+ORDER BY name
+`
+
+		var results []*struct {
+			Name string `boil:"name"`
+		}
+
+		if err := queries.Raw(query).Bind(ctx, tx, &results); err != nil {
+			return err
+		}
+		for _, result := range results {
+			channels = append(channels, result.Name)
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-
-	usersMap := make(map[string]struct{})
-	userIdToName := make(map[string]string)
-
-	for _, user := range users {
-		userIdToName[user.Name] = user.ID
-	}
-
-	channels, err := api.GetAllChannelsContext(cmd.Context())
-
-	if err != nil {
-		return err
-	}
-
-	names := []string{}
-
 	for _, channel := range channels {
-		usersMap[channel.User] = struct{}{}
-
-		if channel.Name != "" {
-			names = append(names, channel.Name)
-		}
-	}
-
-	userNames := []string{}
-
-	for k, _ := range usersMap {
-		if k == "" {
-			continue
-		}
-
-		userName, _ := userIdToName[k]
-
-		if userName == "" {
-			continue
-		}
-
-		userNames = append(userNames, userName)
-	}
-
-	sort.Strings(userNames)
-	sort.Strings(names)
-
-	for _, userName := range userNames {
-		cmd.Printf("@%s\n", userName)
-	}
-	for _, name := range names {
-		cmd.Println(name)
+		cmd.Printf("%s\n", channel)
 	}
 
 	return nil

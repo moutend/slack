@@ -1,9 +1,12 @@
 package app
 
 import (
-	"sort"
+	"context"
 
+	"github.com/moutend/slack/internal/models"
 	"github.com/spf13/cobra"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 var userCommand = &cobra.Command{
@@ -14,24 +17,31 @@ var userCommand = &cobra.Command{
 }
 
 func userCommandRunE(cmd *cobra.Command, args []string) error {
-	users, err := api.GetAllUsersContext(cmd.Context())
+	var users []*models.User
 
+	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
+		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+			goto LOAD_USERS
+		}
+		if err := client.FetchUsers(ctx, tx); err != nil {
+			return err
+		}
+
+	LOAD_USERS:
+
+		var err error
+
+		users, err = models.Users(
+			qm.OrderBy(models.UserColumns.Name),
+		).All(ctx, tx)
+
+		return err
+	})
 	if err != nil {
 		return err
 	}
-
-	names := []string{}
-
 	for _, user := range users {
-		if user.Name != "" {
-			names = append(names, user.Name)
-		}
-	}
-
-	sort.Strings(names)
-
-	for _, name := range names {
-		cmd.Printf("@%s\n", name)
+		cmd.Printf("@%s (%s)\n", user.Name, user.ID)
 	}
 
 	return nil

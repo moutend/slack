@@ -1,21 +1,26 @@
 package app
 
 import (
-	"log"
-	"math/rand"
+	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
-	"github.com/moutend/slack/internal/client"
+	"github.com/moutend/slack/internal/api"
+	"github.com/moutend/slack/internal/database"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var (
+	client *api.Client
+	dbm    *database.Manager
+)
+
 var RootCommand = &cobra.Command{
-	Use:               "slack",
-	Short:             "slack - command line slack viewer",
-	PersistentPreRunE: rootPersistentPreRunE,
+	Use:                "slack",
+	Short:              "slack - command line slack client",
+	PersistentPreRunE:  rootPersistentPreRunE,
+	PersistentPostRunE: rootPersistentPostRunE,
 }
 
 func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
@@ -35,22 +40,47 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	cacheDirectoryPath := filepath.Join(wd, ".slack")
+
+	os.MkdirAll(cacheDirectoryPath, 0755)
+
+	databaseFilePath := filepath.Join(cacheDirectoryPath, "local.db3")
+	migrationDirectoryPath := filepath.Join(cacheDirectoryPath, "migrations")
+
+	if _, err := os.Stat(migrationDirectoryPath); err != nil {
+		fmt.Println("@@@")
+	}
+
+	dbm, err = database.New(databaseFilePath, migrationDirectoryPath)
+
+	if err != nil {
+		return err
+	}
+	if yes, _ := cmd.Flags().GetBool("debug"); yes {
+		dbm.SetLogger(cmd.OutOrStdout())
+	}
+
 	botToken := viper.GetString("SLACK_BOT_API_TOKEN")
 	userToken := viper.GetString("SLACK_USER_API_TOKEN")
 
-	api = client.New(botToken, userToken, filepath.Join(wd, ".slack"))
+	client = api.New(botToken, userToken)
 
 	if yes, _ := cmd.Flags().GetBool("debug"); yes {
-		api.SetLogger(log.New(os.Stdout, "debug: ", 0))
+		client.SetLogger(cmd.OutOrStdout())
 	}
 
 	return nil
 }
 
-func init() {
-	rand.Seed(time.Now().Unix())
+func rootPersistentPostRunE(cmd *cobra.Command, args []string) error {
+	if dbm != nil {
+		dbm.Close()
+	}
 
+	return nil
+}
+func init() {
 	RootCommand.PersistentFlags().BoolP("debug", "d", false, "enable debug output")
-	RootCommand.PersistentFlags().BoolP("force-fetch", "f", false, "force fetch")
+	RootCommand.PersistentFlags().BoolP("skip-fetch", "s", false, "skip fetch")
 	RootCommand.PersistentFlags().StringP("config", "c", "", "path to configuration file")
 }

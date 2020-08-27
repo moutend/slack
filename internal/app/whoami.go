@@ -12,7 +12,7 @@ var whoamiCommand = &cobra.Command{
 }
 
 func whoamiCommandRunE(cmd *cobra.Command, args []string) error {
-	botName, botID, userName, userID, err := api.Whoami()
+	botName, botID, userName, userID, err := client.Whoami()
 
 	if err != nil {
 		return err

@@ -1,17 +1,23 @@
 package app
 
 import (
+	"context"
 	"fmt"
+	"strings"
 
+	"github.com/moutend/slack/internal/models"
 	"github.com/moutend/slack/internal/utility"
 	"github.com/slack-go/slack"
 	"github.com/spf13/cobra"
+	"github.com/volatiletech/sqlboiler/queries"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 var messageCommand = &cobra.Command{
 	Use:     "message",
 	Aliases: []string{"m", "messages"},
-	Short:   "print messages",
+	Short:   "print message",
 	RunE:    messageCommandRunE,
 }
 
@@ -20,65 +26,98 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	forceFetch, _ := cmd.Flags().GetBool("debug")
-	target := args[0]
+	var userNameReplacer *strings.Replacer
+	var messages []*models.Message
 
-	users, err := api.GetAllUsersContext(cmd.Context())
+	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
+		var err error
 
+		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+			goto LOAD_CACHE1
+		}
+		if err := client.FetchUsers(ctx, tx); err != nil {
+			return err
+		}
+		if err := client.FetchChannels(ctx, tx); err != nil {
+			return err
+		}
+
+	LOAD_CACHE1:
+
+		users, err := models.Users().All(ctx, tx)
+
+		if err != nil {
+			return err
+		}
+
+		patterns := make([]string, len(users)*4)
+
+		for i, user := range users {
+			patterns[i*4] = fmt.Sprintf("<@%s>", user.ID)
+			patterns[i*4+1] = fmt.Sprintf("@%s", user.Name)
+			patterns[i*4+2] = fmt.Sprintf("%s", user.ID)
+			patterns[i*4+3] = fmt.Sprintf("%s", user.Name)
+		}
+
+		userNameReplacer = strings.NewReplacer(patterns...)
+
+		query := `
+SELECT c.id AS id
+FROM channels c
+LEFT JOIN users u ON u.id = c.user
+WHERE u.name = ? OR c.name = ?
+`
+
+		var results []*struct {
+			ID string `boil:"id"`
+		}
+
+		if err := queries.Raw(query, args[0], args[0]).Bind(ctx, tx, &results); err != nil {
+			return err
+		}
+		if len(results) < 1 {
+			return fmt.Errorf("failed to find user or channel: %s", args[0])
+		}
+
+		fn := func(conversationCount, replyCount int, message slack.Message) bool {
+			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
+				return true
+			}
+
+			max, _ := cmd.Flags().GetInt("max-fetch-messages")
+
+			if conversationCount > max || replyCount > max {
+				return false
+			}
+
+			return true
+		}
+
+		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+			goto LOAD_CACHE2
+		}
+		if err := client.FetchMessages(ctx, tx, results[0].ID, fn); err != nil {
+			return err
+		}
+
+	LOAD_CACHE2:
+
+		messages, err = models.Messages(
+			models.MessageWhere.Channel.EQ(results[0].ID),
+			qm.OrderBy(models.MessageColumns.CreatedAt+" DESC"),
+		).All(ctx, tx)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-
-	userIdToName := make(map[string]string)
-
-	for _, user := range users {
-		userIdToName[user.ID] = user.Name
-
-		if "@"+user.Name == target {
-			target = user.ID
-		}
-	}
-
-	channels, err := api.GetAllChannelsContext(cmd.Context())
-
-	if err != nil {
-		return err
-	}
-
-	var found slack.Channel
-
-	for _, c := range channels {
-		if c.Name == target || c.NameNormalized == target || c.User == target {
-			found = c
-
-			break
-		}
-	}
-	if found.ID == "" {
-		return fmt.Errorf("channel or user %s not found", target)
-	}
-
-	messages, err := api.GetAllConversationsContext(cmd.Context(), found.ID, forceFetch)
-
-	if err != nil {
-		return err
-	}
-	if err := utility.SortMessagesByTimestamp(messages); err != nil {
-		return err
-	}
-
-	for _, m := range messages {
-		u, ok := userIdToName[m.User]
-
-		if !ok {
-			u = "undefined"
-		}
-
-		cmd.Println(
-			"@"+u,
-			utility.FormatMessageText(m.Text, userIdToName),
-			utility.Ago(m.Timestamp),
-		)
+	for _, message := range messages {
+		cmd.Printf("@%s %s %s\n", userNameReplacer.Replace(message.User), userNameReplacer.Replace(message.Text), utility.Ago(message.CreatedAt))
 	}
 
 	return nil
@@ -86,4 +125,6 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 
 func init() {
 	RootCommand.AddCommand(messageCommand)
+	messageCommand.Flags().BoolP("fetch-all-messages", "a", false, "fetch all messages")
+	messageCommand.Flags().IntP("max-fetch-messages", "m", 100, "quit fetching when reached this value")
 }
