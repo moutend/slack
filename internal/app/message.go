@@ -79,14 +79,27 @@ WHERE u.name = ? OR c.name = ?
 			return fmt.Errorf("failed to find user or channel: %s", args[0])
 		}
 
-		fn := func(conversationCount, replyCount int, message slack.Message) bool {
+		conversationFunc := func(conversationCount int, message slack.Message) bool {
 			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
 				return true
 			}
 
 			max, _ := cmd.Flags().GetInt("max-fetch-messages")
 
-			if conversationCount > max || replyCount > max {
+			if conversationCount > max {
+				return false
+			}
+
+			return true
+		}
+		replyFunc := func(replyCount int, message slack.Message) bool {
+			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
+				return true
+			}
+
+			max, _ := cmd.Flags().GetInt("max-fetch-messages")
+
+			if replyCount > max {
 				return false
 			}
 
@@ -96,7 +109,7 @@ WHERE u.name = ? OR c.name = ?
 		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
 			goto LOAD_CACHE2
 		}
-		if err := client.FetchMessages(ctx, tx, results[0].ID, fn); err != nil {
+		if err := client.FetchMessages(ctx, tx, results[0].ID, conversationFunc, replyFunc); err != nil {
 			return err
 		}
 

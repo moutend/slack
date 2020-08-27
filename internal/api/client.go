@@ -278,11 +278,22 @@ func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack
 }
 
 // FetchMessagesConditionFunc is a function which indicates continuation. Fetching is performed while this function returns true.
-type FetchMessagesConditionFunc func(conversationCount, replyCount int, m slack.Message) bool
+type FetchMessagesConditionFunc func(count int, m slack.Message) bool
 
 // FetchMessages fetches and saves information about messages.
-func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string, fn FetchMessagesConditionFunc) error {
+func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string, fs ...FetchMessagesConditionFunc) error {
 	defer a.debug.Println("FetchMessages: done")
+
+	var conversationFunc, replyFunc FetchMessagesConditionFunc
+
+	for i, f := range fs {
+		switch i {
+		case 0:
+			conversationFunc = f
+		case 1:
+			replyFunc = f
+		}
+	}
 
 	conversationCount := 0
 	replyCount := 0
@@ -307,7 +318,7 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 			// I don't know why, but the Message.Channel field seems to be always empty.
 			message.Channel = channelID
 
-			if !fn(conversationCount, replyCount, message) {
+			if conversationFunc != nil && !conversationFunc(conversationCount, message) {
 				a.debug.Println("FetchMessages: quit fetching conversation messages")
 
 				goto END_FETCH_CONVERSATIONS
@@ -356,7 +367,7 @@ END_FETCH_CONVERSATIONS:
 				// I don't know why, but the Message.Channel field seems to be always empty.
 				message.Channel = channelID
 
-				if !fn(conversationCount, replyCount, message) {
+				if replyFunc != nil && !replyFunc(replyCount, message) {
 					a.debug.Println("FetchMessages: quit fetching reply messages")
 
 					return nil
