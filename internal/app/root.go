@@ -1,8 +1,10 @@
 package app
 
 import (
-	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/moutend/slack/internal/api"
@@ -44,14 +46,17 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 
 	os.MkdirAll(cacheDirectoryPath, 0755)
 
-	databaseFilePath := filepath.Join(cacheDirectoryPath, "local.db3")
-	migrationDirectoryPath := filepath.Join(cacheDirectoryPath, "migrations")
+	db3Path := filepath.Join(cacheDirectoryPath, "local.db3")
+	migrationsPath := filepath.Join(cacheDirectoryPath, "migrations")
 
-	if _, err := os.Stat(migrationDirectoryPath); err != nil {
-		fmt.Println("@@@")
+	if _, err = os.Stat(migrationsPath); err != nil {
+		err = fetchMigrations(migrationsPath)
+	}
+	if err != nil {
+		return err
 	}
 
-	dbm, err = database.New(databaseFilePath, migrationDirectoryPath)
+	dbm, err = database.New(db3Path, migrationsPath)
 
 	if err != nil {
 		return err
@@ -67,6 +72,36 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 
 	if yes, _ := cmd.Flags().GetBool("debug"); yes {
 		client.SetLogger(cmd.OutOrStdout())
+	}
+
+	return nil
+}
+
+func fetchMigrations(basePath string) error {
+	filenames := []string{
+		"0001_db.up.sql",
+		"0001_db.down.sql",
+	}
+	for _, filename := range filenames {
+		res, err := http.Get(path.Join("https://raw.githubusercontent.com/moutend/slack/develop/_migrations", filename))
+
+		if err != nil {
+			return err
+		}
+
+		defer res.Body.Close()
+
+		file, err := os.Create(filepath.Join(basePath, filename))
+
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		if _, err := io.Copy(file, res.Body); err != nil {
+			return err
+		}
 	}
 
 	return nil
