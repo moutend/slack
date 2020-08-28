@@ -9,8 +9,8 @@ import (
 	"github.com/moutend/slack/internal/utility"
 	"github.com/slack-go/slack"
 	"github.com/spf13/cobra"
-	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
