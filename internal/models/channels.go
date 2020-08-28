@@ -49,7 +49,6 @@ type Channel struct {
 	IsMember           bool      `boil:"is_member" json:"is_member" toml:"is_member" yaml:"is_member"`
 	Locale             string    `boil:"locale" json:"locale" toml:"locale" yaml:"locale"`
 	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *channelR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L channelL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -83,7 +82,6 @@ var ChannelColumns = struct {
 	IsMember           string
 	Locale             string
 	CreatedAt          string
-	UpdatedAt          string
 }{
 	ID:                 "id",
 	IsOpen:             "is_open",
@@ -112,7 +110,6 @@ var ChannelColumns = struct {
 	IsMember:           "is_member",
 	Locale:             "locale",
 	CreatedAt:          "created_at",
-	UpdatedAt:          "updated_at",
 }
 
 // Generated where
@@ -221,7 +218,6 @@ var ChannelWhere = struct {
 	IsMember           whereHelperbool
 	Locale             whereHelperstring
 	CreatedAt          whereHelpertime_Time
-	UpdatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "\"channels\".\"id\""},
 	IsOpen:             whereHelperbool{field: "\"channels\".\"is_open\""},
@@ -250,7 +246,6 @@ var ChannelWhere = struct {
 	IsMember:           whereHelperbool{field: "\"channels\".\"is_member\""},
 	Locale:             whereHelperstring{field: "\"channels\".\"locale\""},
 	CreatedAt:          whereHelpertime_Time{field: "\"channels\".\"created_at\""},
-	UpdatedAt:          whereHelpertime_Time{field: "\"channels\".\"updated_at\""},
 }
 
 // ChannelRels is where relationship names are stored.
@@ -270,8 +265,8 @@ func (*channelR) NewStruct() *channelR {
 type channelL struct{}
 
 var (
-	channelAllColumns            = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at", "updated_at"}
-	channelColumnsWithoutDefault = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at", "updated_at"}
+	channelAllColumns            = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at"}
+	channelColumnsWithoutDefault = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at"}
 	channelColumnsWithDefault    = []string{}
 	channelPrimaryKeyColumns     = []string{"id"}
 )
@@ -597,9 +592,6 @@ func (o *Channel) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 		if o.CreatedAt.IsZero() {
 			o.CreatedAt = currTime
 		}
-		if o.UpdatedAt.IsZero() {
-			o.UpdatedAt = currTime
-		}
 	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
@@ -692,12 +684,6 @@ CacheNoHooks:
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *Channel) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		o.UpdatedAt = currTime
-	}
-
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err

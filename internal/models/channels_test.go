@@ -568,7 +568,7 @@ func testChannelsSelect(t *testing.T) {
 }
 
 var (
-	channelDBTypes = map[string]string{`ID`: `STRING`, `IsOpen`: `BOOLEAN`, `LastRead`: `STRING`, `UnreadCount`: `INTEGER`, `UnreadCountDisplay`: `INTEGER`, `IsGroup`: `BOOLEAN`, `IsShared`: `BOOLEAN`, `IsIm`: `BOOLEAN`, `IsExtShared`: `BOOLEAN`, `IsOrgShared`: `BOOLEAN`, `IsPendingExtShared`: `BOOLEAN`, `IsPrivate`: `BOOLEAN`, `IsMpim`: `BOOLEAN`, `Unlinked`: `INTEGER`, `NameNormalized`: `STRING`, `NumMembers`: `INTEGER`, `User`: `STRING`, `Name`: `STRING`, `Creator`: `STRING`, `IsArchived`: `BOOLEAN`, `Topic`: `STRING`, `Purpose`: `STRING`, `IsChannel`: `BOOLEAN`, `IsGeneral`: `BOOLEAN`, `IsMember`: `BOOLEAN`, `Locale`: `STRING`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
+	channelDBTypes = map[string]string{`ID`: `STRING`, `IsOpen`: `BOOLEAN`, `LastRead`: `STRING`, `UnreadCount`: `INTEGER`, `UnreadCountDisplay`: `INTEGER`, `IsGroup`: `BOOLEAN`, `IsShared`: `BOOLEAN`, `IsIm`: `BOOLEAN`, `IsExtShared`: `BOOLEAN`, `IsOrgShared`: `BOOLEAN`, `IsPendingExtShared`: `BOOLEAN`, `IsPrivate`: `BOOLEAN`, `IsMpim`: `BOOLEAN`, `Unlinked`: `INTEGER`, `NameNormalized`: `STRING`, `NumMembers`: `INTEGER`, `User`: `STRING`, `Name`: `STRING`, `Creator`: `STRING`, `IsArchived`: `BOOLEAN`, `Topic`: `STRING`, `Purpose`: `STRING`, `IsChannel`: `BOOLEAN`, `IsGeneral`: `BOOLEAN`, `IsMember`: `BOOLEAN`, `Locale`: `STRING`, `CreatedAt`: `DATETIME`}
 	_              = bytes.MinRead
 )
 

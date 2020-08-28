@@ -568,7 +568,7 @@ func testUsersSelect(t *testing.T) {
 }
 
 var (
-	userDBTypes = map[string]string{`ID`: `STRING`, `TeamID`: `STRING`, `Name`: `STRING`, `Deleted`: `BOOLEAN`, `Color`: `STRING`, `RealName`: `STRING`, `TZ`: `STRING`, `TZLabel`: `STRING`, `TZOffset`: `INTEGER`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
+	userDBTypes = map[string]string{`ID`: `STRING`, `TeamID`: `STRING`, `Name`: `STRING`, `Deleted`: `BOOLEAN`, `Color`: `STRING`, `RealName`: `STRING`, `TZ`: `STRING`, `TZLabel`: `STRING`, `TZOffset`: `INTEGER`, `CreatedAt`: `DATETIME`}
 	_           = bytes.MinRead
 )
 

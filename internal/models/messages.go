@@ -40,7 +40,6 @@ type Message struct {
 	Name             string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	ReplyCount       int64     `boil:"reply_count" json:"reply_count" toml:"reply_count" yaml:"reply_count"`
 	CreatedAt        time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt        time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *messageR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L messageL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -65,7 +64,6 @@ var MessageColumns = struct {
 	Name             string
 	ReplyCount       string
 	CreatedAt        string
-	UpdatedAt        string
 }{
 	Type:             "type",
 	Channel:          "channel",
@@ -85,7 +83,6 @@ var MessageColumns = struct {
 	Name:             "name",
 	ReplyCount:       "reply_count",
 	CreatedAt:        "created_at",
-	UpdatedAt:        "updated_at",
 }
 
 // Generated where
@@ -109,7 +106,6 @@ var MessageWhere = struct {
 	Name             whereHelperstring
 	ReplyCount       whereHelperint64
 	CreatedAt        whereHelpertime_Time
-	UpdatedAt        whereHelpertime_Time
 }{
 	Type:             whereHelperstring{field: "\"messages\".\"type\""},
 	Channel:          whereHelperstring{field: "\"messages\".\"channel\""},
@@ -129,7 +125,6 @@ var MessageWhere = struct {
 	Name:             whereHelperstring{field: "\"messages\".\"name\""},
 	ReplyCount:       whereHelperint64{field: "\"messages\".\"reply_count\""},
 	CreatedAt:        whereHelpertime_Time{field: "\"messages\".\"created_at\""},
-	UpdatedAt:        whereHelpertime_Time{field: "\"messages\".\"updated_at\""},
 }
 
 // MessageRels is where relationship names are stored.
@@ -149,8 +144,8 @@ func (*messageR) NewStruct() *messageR {
 type messageL struct{}
 
 var (
-	messageAllColumns            = []string{"type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "name", "reply_count", "created_at", "updated_at"}
-	messageColumnsWithoutDefault = []string{"type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "name", "reply_count", "created_at", "updated_at"}
+	messageAllColumns            = []string{"type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "name", "reply_count", "created_at"}
+	messageColumnsWithoutDefault = []string{"type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "name", "reply_count", "created_at"}
 	messageColumnsWithDefault    = []string{}
 	messagePrimaryKeyColumns     = []string{"timestamp"}
 )
@@ -476,9 +471,6 @@ func (o *Message) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 		if o.CreatedAt.IsZero() {
 			o.CreatedAt = currTime
 		}
-		if o.UpdatedAt.IsZero() {
-			o.UpdatedAt = currTime
-		}
 	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
@@ -571,12 +563,6 @@ CacheNoHooks:
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *Message) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		o.UpdatedAt = currTime
-	}
-
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err

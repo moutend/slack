@@ -32,7 +32,6 @@ type User struct {
 	TZLabel   string    `boil:"tz_label" json:"tz_label" toml:"tz_label" yaml:"tz_label"`
 	TZOffset  int64     `boil:"tz_offset" json:"tz_offset" toml:"tz_offset" yaml:"tz_offset"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -49,7 +48,6 @@ var UserColumns = struct {
 	TZLabel   string
 	TZOffset  string
 	CreatedAt string
-	UpdatedAt string
 }{
 	ID:        "id",
 	TeamID:    "team_id",
@@ -61,7 +59,6 @@ var UserColumns = struct {
 	TZLabel:   "tz_label",
 	TZOffset:  "tz_offset",
 	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
 }
 
 // Generated where
@@ -77,7 +74,6 @@ var UserWhere = struct {
 	TZLabel   whereHelperstring
 	TZOffset  whereHelperint64
 	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
 }{
 	ID:        whereHelperstring{field: "\"users\".\"id\""},
 	TeamID:    whereHelperstring{field: "\"users\".\"team_id\""},
@@ -89,7 +85,6 @@ var UserWhere = struct {
 	TZLabel:   whereHelperstring{field: "\"users\".\"tz_label\""},
 	TZOffset:  whereHelperint64{field: "\"users\".\"tz_offset\""},
 	CreatedAt: whereHelpertime_Time{field: "\"users\".\"created_at\""},
-	UpdatedAt: whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -109,8 +104,8 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "created_at", "updated_at"}
-	userColumnsWithoutDefault = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "created_at", "updated_at"}
+	userAllColumns            = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "created_at"}
+	userColumnsWithoutDefault = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "created_at"}
 	userColumnsWithDefault    = []string{}
 	userPrimaryKeyColumns     = []string{"id"}
 )
@@ -436,9 +431,6 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		if o.CreatedAt.IsZero() {
 			o.CreatedAt = currTime
 		}
-		if o.UpdatedAt.IsZero() {
-			o.UpdatedAt = currTime
-		}
 	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
@@ -531,12 +523,6 @@ CacheNoHooks:
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		o.UpdatedAt = currTime
-	}
-
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
