@@ -12,7 +12,6 @@ CREATE TABLE users (
   tz_offset INTEGER NOT NULL,
 
   created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -34,7 +33,6 @@ CREATE TABLE channels (
   unlinked INTEGER NOT NULL,
   name_normalized STRING NOT NULL,
   num_members INTEGER NOT NULL,
---  priority DECIMAL NOT NULL,
   user STRING NOT NULL,
   name STRING NOT NULL,
   creator STRING NOT NULL,
@@ -47,7 +45,6 @@ CREATE TABLE channels (
   locale STRING NOT NULL,
 
   created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -72,7 +69,6 @@ CREATE TABLE messages (
   reply_count INTEGER NOT NULL,
 
   created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
 
   PRIMARY KEY (`timestamp`)
 );
