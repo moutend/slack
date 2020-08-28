@@ -15,6 +15,8 @@ import (
 var (
 	client *api.Client
 	dbm    *database.Manager
+
+	userName, userID, botName, botID string
 )
 
 var RootCommand = &cobra.Command{
@@ -72,11 +74,19 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 	if yes, _ := cmd.Flags().GetBool("debug"); yes {
 		client.SetLogger(cmd.OutOrStdout())
 	}
+	if yes, _ := cmd.Flags().GetBool("skip-fetch"); !yes {
+		botName, botID, userName, userID, err = client.Whoami()
+	}
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func fetchMigrations(basePath string) error {
+	os.MkdirAll(basePath, 0755)
+
 	filenames := []string{
 		"0001_db.up.sql",
 		"0001_db.down.sql",

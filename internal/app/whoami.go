@@ -12,12 +12,6 @@ var whoamiCommand = &cobra.Command{
 }
 
 func whoamiCommandRunE(cmd *cobra.Command, args []string) error {
-	botName, botID, userName, userID, err := client.Whoami()
-
-	if err != nil {
-		return err
-	}
-
 	cmd.Printf("user\t%s\t%s\n", userName, userID)
 	cmd.Printf("bot\t%s\t%s\n", botName, botID)
 
