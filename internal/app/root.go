@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/moutend/slack/internal/api"
@@ -83,7 +82,7 @@ func fetchMigrations(basePath string) error {
 		"0001_db.down.sql",
 	}
 	for _, filename := range filenames {
-		res, err := http.Get(path.Join("https://raw.githubusercontent.com/moutend/slack/develop/_migrations", filename))
+		res, err := http.Get("https://raw.githubusercontent.com/moutend/slack/develop/_migrations/" + filename)
 
 		if err != nil {
 			return err
