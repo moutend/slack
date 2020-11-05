@@ -26,6 +26,11 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	messageReplacer := strings.NewReplacer(
+		"&gt;", ">",
+		"&lt;", "<",
+		"&amp;", "&",
+	)
 	var userNameReplacer *strings.Replacer
 	var messages []*models.Message
 
@@ -130,7 +135,12 @@ WHERE u.name = ? OR c.name = ?
 		return err
 	}
 	for _, message := range messages {
-		cmd.Printf("@%s %s %s\n", userNameReplacer.Replace(message.User), userNameReplacer.Replace(message.Text), utility.Ago(message.CreatedAt))
+		cmd.Printf(
+			"@%s %s %s\n",
+			userNameReplacer.Replace(message.User),
+			messageReplacer.Replace(userNameReplacer.Replace(message.Text)),
+			utility.Ago(message.CreatedAt),
+		)
 	}
 
 	return nil
