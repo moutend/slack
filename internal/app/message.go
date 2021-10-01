@@ -65,20 +65,20 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 		fetchAllMessages, _ := cmd.Flags().GetBool("fetch-all-messages")
 		fetchAllMessages = fetchAllMessages || count == 0
 
-		conversationFunc := func(conversationCount int, message slack.Message) bool {
+		client.KeepFetchingMessages = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
 			max, _ := cmd.Flags().GetInt("max-fetch-messages")
 
-			if conversationCount > max {
+			if fetchedMessagesCount > max {
 				return false
 			}
 
 			return fetchAllMessages
 		}
 
-		replyFunc := func(replyCount int, message slack.Message) bool {
+		client.KeepFetchingReplies = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
 			max, _ := cmd.Flags().GetInt("max-fetch-messages")
 
-			if replyCount > max {
+			if fetchedMessagesCount > max {
 				return false
 			}
 
@@ -88,7 +88,7 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
 			goto LOAD_MESSAGE_CACHE
 		}
-		if err := client.FetchMessages(ctx, tx, channelID, conversationFunc, replyFunc); err != nil {
+		if err := client.FetchMessages(ctx, tx, channelID); err != nil {
 			return err
 		}
 

@@ -27,6 +27,9 @@ type Client struct {
 	user *slack.Client
 
 	debug *log.Logger
+
+	KeepFetchingMessages FetchMessagesConditionFunc
+	KeepFetchingReplies  FetchMessagesConditionFunc
 }
 
 // New returns prepared API client.
@@ -278,26 +281,16 @@ func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack
 }
 
 // FetchMessagesConditionFunc is a function which indicates continuation. Fetching is performed while this function returns true.
-type FetchMessagesConditionFunc func(count int, m slack.Message) bool
+type FetchMessagesConditionFunc func(fetchedMessageCount int, messages []slack.Message) (keepFetching bool)
 
 // FetchMessages fetches and saves information about messages.
-func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string, fs ...FetchMessagesConditionFunc) error {
+func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string) error {
 	defer a.debug.Println("FetchMessages: done")
-
-	var conversationFunc, replyFunc FetchMessagesConditionFunc
-
-	for i, f := range fs {
-		switch i {
-		case 0:
-			conversationFunc = f
-		case 1:
-			replyFunc = f
-		}
-	}
 
 	conversationCount := 0
 	replyCount := 0
 	timestamps := []string{}
+
 	parameter := &slack.GetConversationHistoryParameters{
 		ChannelID: channelID,
 		Inclusive: false,
@@ -307,45 +300,45 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 	}
 
 	for {
-		a.debug.Printf("FetchMessages: fetch conversation messages: parameter: %+v\n", parameter)
+		a.debug.Printf("FetchMessages: fetch messages: cursor: %v\n", parameter.Cursor)
 
 		result, err := a.user.GetConversationHistoryContext(ctx, parameter)
 
 		if err != nil {
-			return errors.Wrap(err, "failed to fetch messages")
+			return fmt.Errorf("api: failed to fetch messages: %w", err)
 		}
 		for _, message := range result.Messages {
 			// I don't know why, but the Message.Channel field seems to be always empty.
 			message.Channel = channelID
 
-			if conversationFunc != nil && !conversationFunc(conversationCount, message) {
-				a.debug.Println("FetchMessages: quit fetching conversation messages")
-
-				goto END_FETCH_CONVERSATIONS
-			}
 			if message.ReplyCount > 0 {
 				timestamps = append(timestamps, message.Timestamp)
 			}
 			if err := upsertMessage(ctx, tx, message); err != nil {
-				return errors.Wrap(err, "api: failed to save message")
+				return fmt.Errorf("api: failed to save message: %s: %w", message.ClientMsgID, err)
 			}
+		}
 
-			conversationCount++
+		conversationCount += len(result.Messages)
+
+		if a.KeepFetchingMessages != nil && !a.KeepFetchingMessages(conversationCount, result.Messages) {
+			a.debug.Println("FetchMessages: stop fetching conversation messages")
+
+			break
 		}
 
 		parameter.Cursor = result.ResponseMetaData.NextCursor
 
 		if parameter.Cursor == "" || !result.HasMore {
+			a.debug.Println("FetchMessages: finish fetching all messages")
+
 			break
 		}
 
 		a.debug.Println("FetchMessages: sleep 100 ms because rate / limit")
 		time.Sleep(100 * time.Millisecond)
 	}
-
-END_FETCH_CONVERSATIONS:
-
-	for _, timestamp := range timestamps {
+	for i, timestamp := range timestamps {
 		parameter := &slack.GetConversationRepliesParameters{
 			ChannelID: channelID,
 			Timestamp: timestamp,
@@ -356,32 +349,35 @@ END_FETCH_CONVERSATIONS:
 		}
 
 		for {
-			a.debug.Printf("FetchMessages: fetch reply messages: parameter: %+v\n", parameter)
+			a.debug.Printf("FetchMessages: fetch replies (%d/%d): cursor: %v\n", i+1, len(timestamps), parameter.Cursor)
 
 			messages, hasMore, nextCursor, err := a.user.GetConversationRepliesContext(ctx, parameter)
 
 			if err != nil {
-				return errors.Wrap(err, "failed to fetch messages")
+				return fmt.Errorf("api: failed to fetch replies: %w")
 			}
 			for _, message := range messages {
 				// I don't know why, but the Message.Channel field seems to be always empty.
 				message.Channel = channelID
 
-				if replyFunc != nil && !replyFunc(replyCount, message) {
-					a.debug.Println("FetchMessages: quit fetching reply messages")
-
-					return nil
-				}
 				if err := upsertMessage(ctx, tx, message); err != nil {
-					return errors.Wrap(err, "api: failed to save message")
+					return fmt.Errorf("api: failed to save reply: %s: %w", message.ClientMsgID, err)
 				}
+			}
 
-				replyCount++
+			replyCount += len(messages)
+
+			if a.KeepFetchingReplies != nil && !a.KeepFetchingReplies(replyCount, messages) {
+				a.debug.Println("FetchMessages: stop fetching replies")
+
+				return nil
 			}
 
 			parameter.Cursor = nextCursor
 
 			if parameter.Cursor == "" || !hasMore {
+				a.debug.Printf("FetchMessages: finish fetching all replies (%d/%d)\n", i+1, len(timestamps))
+
 				break
 			}
 
