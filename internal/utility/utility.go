@@ -1,8 +1,14 @@
 package utility
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/moutend/slack/internal/models"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 )
 
 // Ago converts time to human readable string.
@@ -33,4 +39,69 @@ func Ago(t time.Time) string {
 	} else {
 		return fmt.Sprintf("%v %v, %v", t.Day(), t.Month(), t.Year())
 	}
+}
+
+func MessageReplacer() *strings.Replacer {
+	return strings.NewReplacer(
+		"&gt;", ">",
+		"&lt;", "<",
+		"&amp;", "&",
+	)
+}
+
+func UserNameReplacer(users []*models.User) *strings.Replacer {
+	patterns := make([]string, len(users)*4)
+
+	for i, user := range users {
+		patterns[i*4] = fmt.Sprintf("<@%s>", user.ID)
+		patterns[i*4+1] = fmt.Sprintf("@%s", user.Name)
+		patterns[i*4+2] = fmt.Sprintf("%s", user.ID)
+		patterns[i*4+3] = fmt.Sprintf("%s", user.Name)
+	}
+
+	return strings.NewReplacer(patterns...)
+}
+
+func GetChannelIDByName(ctx context.Context, tx boil.ContextTransactor, name string) (string, error) {
+	query := `
+SELECT c.id AS id
+FROM channel c
+LEFT JOIN user u ON u.id = c.user
+WHERE u.name = ? OR c.name = ?
+`
+
+	var channels []*struct {
+		ID string `boil:"id"`
+	}
+
+	if err := queries.Raw(query, name, name).Bind(ctx, tx, &channels); err != nil {
+		return "", fmt.Errorf("failed to find channel or user '%s': %w", name, err)
+	}
+	if len(channels) != 1 {
+		return "", fmt.Errorf("failed to load channel or user '%s'", name)
+	}
+
+	return channels[0].ID, nil
+}
+
+// ExtractChannelIDAndTimestamp extracts channel id and timestamp from URL. The timestamp is a very long integer, not a dot separated UNIX timestamp.
+func ExtractChannelIDAndTimestamp(url string) (channelID, timestamp string, err error) {
+	if !strings.HasPrefix(url, "https://") {
+		err = fmt.Errorf("URL must begins with 'https://'")
+
+		return
+	}
+
+	elem := strings.Split(strings.TrimPrefix(url, "https://"), "/")
+
+	if len(elem) != 4 {
+		err = fmt.Errorf("URL must be 'https://example.slack.com/archives/xxx/yyy'")
+
+		return
+	}
+
+	channelID = elem[2]
+	timestamp = strings.TrimPrefix(elem[3], "p")
+
+	return
 }

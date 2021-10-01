@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	dsn := "file:" + filepath.Join(wd, "temporary.db3") + "?cache=shared&mode=rwc"
+	dsn := "file:" + filepath.Join(wd, "cache.db3") + "?cache=shared&mode=rwc"
 
 	db, err := sql.Open(`sqlite3`, dsn)
 

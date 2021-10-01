@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"strconv"
@@ -13,10 +13,16 @@ import (
 	"time"
 
 	"github.com/moutend/slack/internal/models"
-	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
+
+var (
+	discard = log.New(io.Discard, "debug: ", 0)
+)
+
+// FetchMessagesConditionFunc is a function which indicates continuation. Fetching is performed while this function returns true.
+type FetchMessagesConditionFunc func(fetchedMessageCount int, messages []slack.Message) (keepFetching bool)
 
 // Client represents API client.
 type Client struct {
@@ -27,6 +33,9 @@ type Client struct {
 	user *slack.Client
 
 	debug *log.Logger
+
+	KeepFetchingMessages FetchMessagesConditionFunc
+	KeepFetchingReplies  FetchMessagesConditionFunc
 }
 
 // New returns prepared API client.
@@ -34,7 +43,7 @@ func New(botToken, userToken string) *Client {
 	return &Client{
 		bot:   slack.New(botToken),
 		user:  slack.New(userToken),
-		debug: log.New(ioutil.Discard, "debug: ", 0),
+		debug: discard,
 	}
 }
 
@@ -42,34 +51,30 @@ func New(botToken, userToken string) *Client {
 func (c *Client) SetLogger(w io.Writer) {
 	if w != nil {
 		c.debug = log.New(w, "debug: ", 0)
-
-		c.debug.Println("SetLogger: start debugging")
-
-		return
 	}
 
-	c.debug = log.New(ioutil.Discard, "debug:", 0)
+	c.debug.Println("SetLogger: start debugging")
 }
 
 // Whoami returns login user identities.
-func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
+func (c *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	var (
 		a1, a2 *slack.AuthTestResponse
 		u1, u2 *url.URL
 	)
 
-	a1, err = a.bot.AuthTest()
+	a1, err = c.bot.AuthTest()
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to authorize: %w", err)
+		err = fmt.Errorf("api: failed to authorize: %w", err)
 
 		return
 	}
 
-	a2, err = a.user.AuthTest()
+	a2, err = c.user.AuthTest()
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to authorize: %w", err)
+		err = fmt.Errorf("api: failed to authorize: %w", err)
 
 		return
 	}
@@ -77,7 +82,7 @@ func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	u1, err = url.Parse(a1.URL)
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to parse URL: %w", err)
+		err = fmt.Errorf("api: failed to parse URL: %w", err)
 
 		return
 	}
@@ -85,12 +90,12 @@ func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	u2, err = url.Parse(a2.URL)
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to parse URL: %w", err)
+		err = fmt.Errorf("api: failed to parse URL: %w", err)
 
 		return
 	}
 	if u1.Host != u2.Host {
-		err = fmt.Errorf("client: bot token or user token is invalid (bot=%q,user=%q)", u1.Host, u2.Host)
+		err = fmt.Errorf("api: bot token or user token is invalid (bot=%q,user=%q)", u1.Host, u2.Host)
 
 		return
 	}
@@ -104,7 +109,18 @@ func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	return
 }
 
-func upsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User) error {
+// UpsertUser updates or inserts given user into database.
+func (c *Client) UpsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User) error {
+	if c.debug != discard {
+		data, err := json.Marshal(user)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertUser: raw data: %q\n", string(data))
+	}
+
 	u, err := models.FindUser(ctx, tx, user.ID)
 
 	if err != nil && err != sql.ErrNoRows {
@@ -120,6 +136,25 @@ func upsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User)
 	u.Deleted = user.Deleted
 	u.Color = user.Color
 	u.RealName = user.RealName
+	u.TZ = user.TZ
+	u.TZLabel = user.TZLabel
+	u.TZOffset = int64(user.TZOffset)
+	// u.Profile
+	u.IsBot = user.IsBot
+	u.IsAdmin = user.IsAdmin
+	u.IsOwner = user.IsOwner
+	u.IsPrimaryOwner = user.IsPrimaryOwner
+	u.IsRestricted = user.IsRestricted
+	u.IsUltraRestricted = user.IsUltraRestricted
+	u.IsStranger = user.IsStranger
+	u.IsAppUser = user.IsAppUser
+	u.IsInvitedUser = user.IsInvitedUser
+	u.Has2fa = user.Has2FA
+	u.HasFiles = user.HasFiles
+	u.Presence = user.Presence
+	u.Locale = user.Locale
+	// user.Updated
+	// user.Enterprise
 
 	if err == sql.ErrNoRows {
 		err = u.Insert(ctx, tx, boil.Infer())
@@ -130,73 +165,84 @@ func upsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User)
 	return err
 }
 
-// FetchUsers fetches and saves information about users.
-func (a *Client) FetchUsers(ctx context.Context, tx boil.ContextTransactor) error {
-	defer a.debug.Println("FetchUsers: done")
+// FetchUsers fetches and saves users.
+func (c *Client) FetchUsers(ctx context.Context, tx boil.ContextTransactor) error {
+	defer c.debug.Println("FetchUsers: done")
 
-	users, err := a.bot.GetUsersContext(ctx)
+	users, err := c.bot.GetUsersContext(ctx)
 
 	if err != nil {
-		return errors.Wrap(err, "failed to fetch users")
+		return fmt.Errorf("api: failed to fetch users: %w", err)
 	}
 	for _, user := range users {
-		if err := upsertUser(ctx, tx, user); err != nil {
-			return errors.Wrap(err, "api: failed to save user")
+		if err := c.UpsertUser(ctx, tx, user); err != nil {
+			return fmt.Errorf("api: failed to save user: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func upsertChannel(ctx context.Context, tx boil.ContextTransactor, channel slack.Channel) error {
-	c, err := models.FindChannel(ctx, tx, channel.ID)
+// UpsertChannel updates or inserts given channel into database.
+func (c *Client) UpsertChannel(ctx context.Context, tx boil.ContextTransactor, channel slack.Channel) error {
+	if c.debug != discard {
+		data, err := json.Marshal(channel)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertChannel: raw data: %q\n", string(data))
+	}
+
+	ch, err := models.FindChannel(ctx, tx, channel.ID)
 
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 	if err == sql.ErrNoRows {
-		c = &models.Channel{}
+		ch = &models.Channel{}
 	}
 
-	c.ID = channel.ID
-	c.IsOpen = channel.IsOpen
-	c.LastRead = channel.LastRead
-	c.UnreadCount = int64(channel.UnreadCount)
-	c.UnreadCountDisplay = int64(channel.UnreadCountDisplay)
-	c.IsGroup = channel.IsGroup
-	c.IsShared = channel.IsShared
-	c.IsIm = channel.IsIM
-	c.IsExtShared = channel.IsExtShared
-	c.IsOrgShared = channel.IsOrgShared
-	c.IsPendingExtShared = channel.IsPendingExtShared
-	c.IsPrivate = channel.IsPrivate
-	c.IsMpim = channel.IsMpIM
-	c.Unlinked = int64(channel.Unlinked)
-	c.NameNormalized = channel.NameNormalized
-	c.NumMembers = int64(channel.NumMembers)
-	c.Creator = channel.Creator
-	c.IsArchived = channel.IsArchived
-	c.Topic = channel.Topic.Value
-	c.Purpose = channel.Purpose.Value
-	c.IsChannel = channel.IsChannel
-	c.IsGeneral = channel.IsGeneral
-	c.IsMember = channel.IsMember
-	c.Locale = channel.Locale
-	c.Name = channel.Name
-	c.User = channel.User
+	ch.ID = channel.ID
+	ch.IsOpen = channel.IsOpen
+	ch.LastRead = channel.LastRead
+	ch.UnreadCount = int64(channel.UnreadCount)
+	ch.UnreadCountDisplay = int64(channel.UnreadCountDisplay)
+	ch.IsGroup = channel.IsGroup
+	ch.IsShared = channel.IsShared
+	ch.IsIm = channel.IsIM
+	ch.IsExtShared = channel.IsExtShared
+	ch.IsOrgShared = channel.IsOrgShared
+	ch.IsPendingExtShared = channel.IsPendingExtShared
+	ch.IsPrivate = channel.IsPrivate
+	ch.IsMpim = channel.IsMpIM
+	ch.Unlinked = int64(channel.Unlinked)
+	ch.NameNormalized = channel.NameNormalized
+	ch.NumMembers = int64(channel.NumMembers)
+	ch.Creator = channel.Creator
+	ch.IsArchived = channel.IsArchived
+	ch.Topic = channel.Topic.Value
+	ch.Purpose = channel.Purpose.Value
+	ch.IsChannel = channel.IsChannel
+	ch.IsGeneral = channel.IsGeneral
+	ch.IsMember = channel.IsMember
+	ch.Locale = channel.Locale
+	ch.Name = channel.Name
+	ch.User = channel.User
 
 	if err == sql.ErrNoRows {
-		err = c.Insert(ctx, tx, boil.Infer())
+		err = ch.Insert(ctx, tx, boil.Infer())
 	} else {
-		_, err = c.Update(ctx, tx, boil.Infer())
+		_, err = ch.Update(ctx, tx, boil.Infer())
 	}
 
 	return err
 }
 
-// fetchChannels fetches and saves information about channels.
-func (a *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) error {
-	defer a.debug.Println("FetchChannels: done")
+// fetchChannels fetches and saves channels.
+func (c *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) error {
+	defer c.debug.Println("FetchChannels: done")
 
 	parameter := &slack.GetConversationsParameters{
 		Limit: 100,
@@ -204,16 +250,16 @@ func (a *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) e
 	}
 
 	for {
-		a.debug.Printf("FetchChannels: parameter: %+v\n", parameter)
+		c.debug.Printf("FetchChannels: cursor: %v\n", parameter.Cursor)
 
-		channels, nextCursor, err := a.user.GetConversationsContext(ctx, parameter)
+		channels, nextCursor, err := c.user.GetConversationsContext(ctx, parameter)
 
 		if err != nil {
-			return errors.Wrap(err, "api: failed to fetch channels")
+			return fmt.Errorf("api: failed to fetch channels: %w", err)
 		}
 		for _, channel := range channels {
-			if err := upsertChannel(ctx, tx, channel); err != nil {
-				return errors.Wrap(err, "api: failed to save channel")
+			if err := c.UpsertChannel(ctx, tx, channel); err != nil {
+				return fmt.Errorf("api: failed to save channel: %w", err)
 			}
 		}
 
@@ -223,14 +269,25 @@ func (a *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) e
 			break
 		}
 
-		a.debug.Println("FetchChannels: sleep 100 ms because of rate/ limit")
+		c.debug.Println("FetchChannels: sleep 100 ms because of rate limit")
 		time.Sleep(100 * time.Millisecond)
 	}
 
 	return nil
 }
 
-func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack.Message) error {
+// UpsertMessage updates or inserts given message into database.
+func (c *Client) UpsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack.Message) error {
+	if c.debug != discard {
+		data, err := json.Marshal(message)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertMessage: raw data: %q\n", string(data))
+	}
+
 	m, err := models.FindMessage(ctx, tx, message.Timestamp)
 
 	if err != nil && err != sql.ErrNoRows {
@@ -240,23 +297,24 @@ func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack
 		m = &models.Message{}
 	}
 	if s := strings.Split(message.Timestamp, "."); len(s) < 2 {
-		return fmt.Errorf("timestamp is broken")
+		return fmt.Errorf("timestamp is broken: %s", message.Timestamp)
 	} else {
 		sec, err := strconv.Atoi(s[0])
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse seconds part of timestamp: %s: %w", message.Timestamp, err)
 		}
 
 		nano, err := strconv.Atoi(s[1])
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse nano seconds part of timestamp: %s: %w", message.Timestamp, err)
 		}
 
-		m.CreatedAt = time.Unix(int64(sec), int64(nano))
+		m.CreatedAt = time.Unix(int64(sec), int64(nano)).UTC()
 	}
 
+	m.ClientMSGID = message.ClientMsgID
 	m.Type = message.Type
 	m.Channel = message.Channel
 	m.User = message.User
@@ -277,27 +335,15 @@ func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack
 	return err
 }
 
-// FetchMessagesConditionFunc is a function which indicates continuation. Fetching is performed while this function returns true.
-type FetchMessagesConditionFunc func(count int, m slack.Message) bool
-
-// FetchMessages fetches and saves information about messages.
-func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string, fs ...FetchMessagesConditionFunc) error {
-	defer a.debug.Println("FetchMessages: done")
-
-	var conversationFunc, replyFunc FetchMessagesConditionFunc
-
-	for i, f := range fs {
-		switch i {
-		case 0:
-			conversationFunc = f
-		case 1:
-			replyFunc = f
-		}
-	}
+// FetchMessages fetches and saves messages.
+func (c *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string) error {
+	defer c.debug.Println("FetchMessages: done")
 
 	conversationCount := 0
 	replyCount := 0
 	timestamps := []string{}
+	retry := 25
+
 	parameter := &slack.GetConversationHistoryParameters{
 		ChannelID: channelID,
 		Inclusive: false,
@@ -307,45 +353,59 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 	}
 
 	for {
-		a.debug.Printf("FetchMessages: fetch conversation messages: parameter: %+v\n", parameter)
+		c.debug.Printf("FetchMessages: fetch messages: cursor: %v\n", parameter.Cursor)
 
-		result, err := a.user.GetConversationHistoryContext(ctx, parameter)
+		result, err := c.user.GetConversationHistoryContext(ctx, parameter)
 
+		if err != nil && strings.Contains(err.Error(), "slack rate limit exceeded") {
+			c.debug.Printf("FetchMessages: detect API rate limit: %w", err)
+
+			if retry == 0 {
+				return nil
+			}
+
+			c.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
+			time.Sleep(2 * time.Second)
+
+			retry -= 1
+
+			continue
+		}
 		if err != nil {
-			return errors.Wrap(err, "failed to fetch messages")
+			return fmt.Errorf("api: failed to fetch messages: %w", err)
 		}
 		for _, message := range result.Messages {
 			// I don't know why, but the Message.Channel field seems to be always empty.
 			message.Channel = channelID
 
-			if conversationFunc != nil && !conversationFunc(conversationCount, message) {
-				a.debug.Println("FetchMessages: quit fetching conversation messages")
-
-				goto END_FETCH_CONVERSATIONS
-			}
 			if message.ReplyCount > 0 {
 				timestamps = append(timestamps, message.Timestamp)
 			}
-			if err := upsertMessage(ctx, tx, message); err != nil {
-				return errors.Wrap(err, "api: failed to save message")
+			if err := c.UpsertMessage(ctx, tx, message); err != nil {
+				return fmt.Errorf("api: failed to save message: %s: %w", message.ClientMsgID, err)
 			}
+		}
 
-			conversationCount++
+		conversationCount += len(result.Messages)
+
+		if c.KeepFetchingMessages != nil && !c.KeepFetchingMessages(conversationCount, result.Messages) {
+			c.debug.Println("FetchMessages: stop fetching conversation messages")
+
+			break
 		}
 
 		parameter.Cursor = result.ResponseMetaData.NextCursor
 
 		if parameter.Cursor == "" || !result.HasMore {
+			c.debug.Println("FetchMessages: finish fetching all messages")
+
 			break
 		}
 
-		a.debug.Println("FetchMessages: sleep 100 ms because rate / limit")
+		c.debug.Println("FetchMessages: sleep 100 ms because rate limit")
 		time.Sleep(100 * time.Millisecond)
 	}
-
-END_FETCH_CONVERSATIONS:
-
-	for _, timestamp := range timestamps {
+	for i, timestamp := range timestamps {
 		parameter := &slack.GetConversationRepliesParameters{
 			ChannelID: channelID,
 			Timestamp: timestamp,
@@ -356,36 +416,53 @@ END_FETCH_CONVERSATIONS:
 		}
 
 		for {
-			a.debug.Printf("FetchMessages: fetch reply messages: parameter: %+v\n", parameter)
+			c.debug.Printf("FetchMessages: fetch replies (%d/%d): cursor: %v\n", i+1, len(timestamps), parameter.Cursor)
 
-			messages, hasMore, nextCursor, err := a.user.GetConversationRepliesContext(ctx, parameter)
+			messages, hasMore, nextCursor, err := c.user.GetConversationRepliesContext(ctx, parameter)
 
+			if err != nil && strings.Contains(err.Error(), "slack rate limit exceeded") {
+				c.debug.Printf("FetchMessages: detect API rate limit: %w", err)
+
+				if retry == 0 {
+					return nil
+				}
+
+				c.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
+				time.Sleep(2 * time.Second)
+
+				retry -= 1
+
+				continue
+			}
 			if err != nil {
-				return errors.Wrap(err, "failed to fetch messages")
+				return fmt.Errorf("api: failed to fetch replies: %w", err)
 			}
 			for _, message := range messages {
 				// I don't know why, but the Message.Channel field seems to be always empty.
 				message.Channel = channelID
 
-				if replyFunc != nil && !replyFunc(replyCount, message) {
-					a.debug.Println("FetchMessages: quit fetching reply messages")
-
-					return nil
+				if err := c.UpsertMessage(ctx, tx, message); err != nil {
+					return fmt.Errorf("api: failed to save reply: %s: %w", message.ClientMsgID, err)
 				}
-				if err := upsertMessage(ctx, tx, message); err != nil {
-					return errors.Wrap(err, "api: failed to save message")
-				}
+			}
 
-				replyCount++
+			replyCount += len(messages)
+
+			if c.KeepFetchingReplies != nil && !c.KeepFetchingReplies(replyCount, messages) {
+				c.debug.Println("FetchMessages: stop fetching replies")
+
+				return nil
 			}
 
 			parameter.Cursor = nextCursor
 
 			if parameter.Cursor == "" || !hasMore {
-				break
+				c.debug.Printf("FetchMessages: finish fetching all replies (%d/%d)\n", i+1, len(timestamps))
+
+				return nil
 			}
 
-			a.debug.Println("FetchMessages: sleep 100 ms because rate / limit")
+			c.debug.Println("FetchMessages: sleep 100 ms because rate limit")
 			time.Sleep(100 * time.Millisecond)
 		}
 	}

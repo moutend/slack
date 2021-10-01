@@ -12,22 +12,28 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-var messageCommand = &cobra.Command{
-	Use:     "message",
-	Aliases: []string{"m"},
-	Short:   "print message",
-	RunE:    messageCommandRunE,
+var archiveCommand = &cobra.Command{
+	Use:     "archive",
+	Aliases: []string{"a"},
+	Short:   "print single message",
+	RunE:    archiveCommandRunE,
 }
 
-func messageCommandRunE(cmd *cobra.Command, args []string) error {
+func archiveCommandRunE(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return nil
+	}
+
+	channelID, timestamp, err := utility.ExtractChannelIDAndTimestamp(args[0])
+
+	if err != nil {
+		return err
 	}
 
 	var userNameReplacer *strings.Replacer
 	var messages []*models.Message
 
-	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
+	err = dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
 			goto LOAD_USER_CACHE
 		}
@@ -46,12 +52,6 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		channelID, err := utility.GetChannelIDByName(ctx, tx, args[0])
-
-		if err != nil {
-			return err
-		}
-
 		userNameReplacer = utility.UserNameReplacer(users)
 
 		count, err := models.Messages(
@@ -62,25 +62,25 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		fetchAllMessages, _ := cmd.Flags().GetBool("fetch-all-messages")
+		fetchAllMessages, _ := cmd.Flags().GetBool("fetch-all-archives")
 		fetchAllMessages = fetchAllMessages || count == 0
 
-		client.KeepFetchingMessages = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
+		client.KeepFetchingMessages = func(fetchedMessagesCount int, archives []slack.Message) (keepFetching bool) {
 			if fetchAllMessages {
 				return true
 			}
 
-			max, _ := cmd.Flags().GetInt("max-fetch-messages")
+			max, _ := cmd.Flags().GetInt("max-fetch-archives")
 
 			return fetchedMessagesCount <= max
 		}
 
-		client.KeepFetchingReplies = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
+		client.KeepFetchingReplies = func(fetchedMessagesCount int, archives []slack.Message) (keepFetching bool) {
 			if fetchAllMessages {
 				return true
 			}
 
-			max, _ := cmd.Flags().GetInt("max-fetch-messages")
+			max, _ := cmd.Flags().GetInt("max-fetch-archives")
 
 			return fetchedMessagesCount <= max
 		}
@@ -105,23 +105,35 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 
 		return nil
 	})
+
 	if err != nil {
 		return err
 	}
 	for _, message := range messages {
+		elem := strings.Split(message.Timestamp, ".")
+
+		matchSec := strings.Contains(timestamp, elem[0])
+		matchNano := strings.Contains(timestamp, elem[1])
+
+		if !matchSec || !matchNano {
+			continue
+		}
+
 		cmd.Printf(
 			"@%s %s %s\n",
 			userNameReplacer.Replace(message.User),
 			utility.MessageReplacer().Replace(userNameReplacer.Replace(message.Text)),
 			utility.Ago(message.CreatedAt),
 		)
+
+		return nil
 	}
+
+	cmd.Println("not found")
 
 	return nil
 }
 
 func init() {
-	RootCommand.AddCommand(messageCommand)
-	messageCommand.Flags().BoolP("fetch-all-messages", "a", false, "fetch all messages")
-	messageCommand.Flags().IntP("max-fetch-messages", "m", 20, "quit fetching when reached this value")
+	RootCommand.AddCommand(archiveCommand)
 }
