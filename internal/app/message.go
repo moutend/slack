@@ -28,8 +28,6 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 	var messages []*models.Message
 
 	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
-		var err error
-
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
 			goto LOAD_USER_CACHE
 		}
@@ -56,32 +54,35 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 
 		userNameReplacer = utility.UserNameReplacer(users)
 
-		conversationFunc := func(conversationCount int, message slack.Message) bool {
-			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
-				return true
-			}
+		count, err := models.Messages(
+			models.MessageWhere.Channel.EQ(channelID),
+		).Count(ctx, tx)
 
+		if err != nil {
+			return err
+		}
+
+		fetchAllMessages, _ := cmd.Flags().GetBool("fetch-all-messages")
+		fetchAllMessages = fetchAllMessages || count == 0
+
+		conversationFunc := func(conversationCount int, message slack.Message) bool {
 			max, _ := cmd.Flags().GetInt("max-fetch-messages")
 
 			if conversationCount > max {
 				return false
 			}
 
-			return true
+			return fetchAllMessages
 		}
 
 		replyFunc := func(replyCount int, message slack.Message) bool {
-			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
-				return true
-			}
-
 			max, _ := cmd.Flags().GetInt("max-fetch-messages")
 
 			if replyCount > max {
 				return false
 			}
 
-			return true
+			return fetchAllMessages
 		}
 
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
