@@ -8,6 +8,7 @@ import (
 
 	"github.com/moutend/slack/internal/api"
 	"github.com/moutend/slack/internal/database"
+	"github.com/moutend/slack/internal/files"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -47,23 +48,16 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 
 	os.MkdirAll(cacheDirectoryPath, 0755)
 
-	db3Path := filepath.Join(cacheDirectoryPath, "local.db3")
-	migrationsPath := filepath.Join(cacheDirectoryPath, "migrations")
+	db3Path := filepath.Join(cacheDirectoryPath, "cache.db3")
 
-	if _, err = os.Stat(migrationsPath); err != nil {
-		err = fetchMigrations(migrationsPath)
-	}
-	if err != nil {
+	if err := files.Create(db3Path); err != nil {
 		return err
 	}
 
-	dbm, err = database.New(db3Path, migrationsPath)
+	dbm, err = database.New(db3Path)
 
 	if err != nil {
 		return err
-	}
-	if yes, _ := cmd.Flags().GetBool("debug"); yes {
-		dbm.SetLogger(cmd.OutOrStdout())
 	}
 
 	botToken := viper.GetString("SLACK_BOT_API_TOKEN")
@@ -73,12 +67,7 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 
 	if yes, _ := cmd.Flags().GetBool("debug"); yes {
 		client.SetLogger(cmd.OutOrStdout())
-	}
-	if yes, _ := cmd.Flags().GetBool("skip-fetch"); !yes {
-		botName, botID, userName, userID, err = client.Whoami()
-	}
-	if err != nil {
-		return err
+		dbm.SetLogger(cmd.OutOrStdout())
 	}
 
 	return nil

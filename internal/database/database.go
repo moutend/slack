@@ -7,12 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
@@ -153,23 +151,11 @@ func (m *Manager) SetLogger(w io.Writer) {
 }
 
 // New returns prepared Manager.
-func New(databaseFilePath, migrationDirectoryPath string) (*Manager, error) {
-	dsn := "file:" + databaseFilePath + "?cache=shared&mode=rwc"
+func New(db3Path string) (*Manager, error) {
+	dsn := "file:" + db3Path + "?cache=shared&mode=rwc"
 	db, err := sql.Open(`sqlite3`, dsn)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "database: failed to create manager")
-	}
-
-	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+migrationDirectoryPath,
-		"sqlite3", driver)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "database: failed to create manager")
-	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return nil, errors.Wrap(err, "database: failed to create manager")
 	}
 
