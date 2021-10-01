@@ -4,11 +4,11 @@
 package models
 
 var TableNames = struct {
-	Channels string
-	Messages string
-	Users    string
+	Channel string
+	Message string
+	User    string
 }{
-	Channels: "channels",
-	Messages: "messages",
-	Users:    "users",
+	Channel: "channel",
+	Message: "message",
+	User:    "user",
 }
