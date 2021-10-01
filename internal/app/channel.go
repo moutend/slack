@@ -10,8 +10,8 @@ import (
 
 var channelCommand = &cobra.Command{
 	Use:     "channel",
-	Aliases: []string{"c", "channels"},
-	Short:   "print channels",
+	Aliases: []string{"c"},
+	Short:   "print all channels and users",
 	RunE:    channelCommandRunE,
 }
 
@@ -25,7 +25,7 @@ func channelCommandRunE(cmd *cobra.Command, args []string) error {
 	result := []ChannelInfo{}
 
 	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
-		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+		if yes, _ := cmd.Flags().GetBool("offline"); yes {
 			goto LOAD_CACHE
 		}
 		if err := client.FetchUsers(ctx, tx); err != nil {

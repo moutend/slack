@@ -81,6 +81,6 @@ func rootPersistentPostRunE(cmd *cobra.Command, args []string) error {
 
 func init() {
 	RootCommand.PersistentFlags().BoolP("debug", "d", false, "enable debug output")
-	RootCommand.PersistentFlags().BoolP("skip-fetch", "s", false, "skip fetch")
+	RootCommand.PersistentFlags().BoolP("offline", "o", false, "skip fetch")
 	RootCommand.PersistentFlags().StringP("config", "c", "", "path to configuration file")
 }

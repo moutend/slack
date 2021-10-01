@@ -16,7 +16,7 @@ import (
 
 var messageCommand = &cobra.Command{
 	Use:     "message",
-	Aliases: []string{"m", "messages"},
+	Aliases: []string{"m"},
 	Short:   "print message",
 	RunE:    messageCommandRunE,
 }
@@ -37,7 +37,7 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
 		var err error
 
-		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+		if yes, _ := cmd.Flags().GetBool("offline"); yes {
 			goto LOAD_CACHE1
 		}
 		if err := client.FetchUsers(ctx, tx); err != nil {
@@ -111,7 +111,7 @@ WHERE u.name = ? OR c.name = ?
 			return true
 		}
 
-		if yes, _ := cmd.Flags().GetBool("skip-fetch"); yes {
+		if yes, _ := cmd.Flags().GetBool("offline"); yes {
 			goto LOAD_CACHE2
 		}
 		if err := client.FetchMessages(ctx, tx, results[0].ID, conversationFunc, replyFunc); err != nil {
