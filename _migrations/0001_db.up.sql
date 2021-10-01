@@ -1,6 +1,6 @@
 PRAGMA ENCODING="UTF-8";
 
-CREATE TABLE users (
+CREATE TABLE user (
   id STRING NOT NULL,
   team_id STRING NOT NULL,
   name STRING NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE channels (
+CREATE TABLE channel (
   id STRING NOT NULL,
   is_open BOOLEAN NOT NULL,
   last_read STRING NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE channels (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE messages (
+CREATE TABLE message (
   `type` STRING NOT NULL,
   channel STRING NOT NULL,
   user STRING NOT NULL,
