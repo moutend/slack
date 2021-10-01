@@ -122,5 +122,5 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 func init() {
 	RootCommand.AddCommand(messageCommand)
 	messageCommand.Flags().BoolP("fetch-all-messages", "a", false, "fetch all messages")
-	messageCommand.Flags().IntP("max-fetch-messages", "m", 100, "quit fetching when reached this value")
+	messageCommand.Flags().IntP("max-fetch-messages", "m", 20, "quit fetching when reached this value")
 }

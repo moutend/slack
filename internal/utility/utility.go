@@ -65,8 +65,8 @@ func UserNameReplacer(users []*models.User) *strings.Replacer {
 func GetChannelIDByName(ctx context.Context, tx boil.ContextTransactor, name string) (string, error) {
 	query := `
 SELECT c.id AS id
-FROM channels c
-LEFT JOIN users u ON u.id = c.user
+FROM channel c
+LEFT JOIN user u ON u.id = c.user
 WHERE u.name = ? OR c.name = ?
 `
 
@@ -75,10 +75,10 @@ WHERE u.name = ? OR c.name = ?
 	}
 
 	if err := queries.Raw(query, name, name).Bind(ctx, tx, &channels); err != nil {
-		return "", fmt.Errorf("failed to find channel or user '%s': %w", err)
+		return "", fmt.Errorf("failed to find channel or user '%s': %w", name, err)
 	}
 	if len(channels) != 1 {
-		return "", fmt.Errorf("user or channel '%s' not found", name)
+		return "", fmt.Errorf("failed to load channel or user '%s'", name)
 	}
 
 	return channels[0].ID, nil
