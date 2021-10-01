@@ -1,8 +1,6 @@
 package app
 
 import (
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 
@@ -73,38 +71,6 @@ func rootPersistentPreRunE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func fetchMigrations(basePath string) error {
-	os.MkdirAll(basePath, 0755)
-
-	filenames := []string{
-		"0001_db.up.sql",
-		"0001_db.down.sql",
-	}
-	for _, filename := range filenames {
-		res, err := http.Get("https://raw.githubusercontent.com/moutend/slack/develop/_migrations/" + filename)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		file, err := os.Create(filepath.Join(basePath, filename))
-
-		if err != nil {
-			return err
-		}
-
-		defer file.Close()
-
-		if _, err := io.Copy(file, res.Body); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func rootPersistentPostRunE(cmd *cobra.Command, args []string) error {
 	if dbm != nil {
 		dbm.Close()
@@ -112,6 +78,7 @@ func rootPersistentPostRunE(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
 func init() {
 	RootCommand.PersistentFlags().BoolP("debug", "d", false, "enable debug output")
 	RootCommand.PersistentFlags().BoolP("skip-fetch", "s", false, "skip fetch")
