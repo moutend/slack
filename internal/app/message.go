@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/moutend/slack/internal/models"
@@ -10,7 +9,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/spf13/cobra"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
@@ -26,11 +24,6 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	messageReplacer := strings.NewReplacer(
-		"&gt;", ">",
-		"&lt;", "<",
-		"&amp;", "&",
-	)
 	var userNameReplacer *strings.Replacer
 	var messages []*models.Message
 
@@ -38,7 +31,7 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 		var err error
 
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
-			goto LOAD_CACHE1
+			goto LOAD_USER_CACHE
 		}
 		if err := client.FetchUsers(ctx, tx); err != nil {
 			return err
@@ -47,7 +40,7 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-	LOAD_CACHE1:
+	LOAD_USER_CACHE:
 
 		users, err := models.Users().All(ctx, tx)
 
@@ -55,34 +48,13 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		patterns := make([]string, len(users)*4)
+		channelID, err := utility.GetChannelIDByName(ctx, tx, args[0])
 
-		for i, user := range users {
-			patterns[i*4] = fmt.Sprintf("<@%s>", user.ID)
-			patterns[i*4+1] = fmt.Sprintf("@%s", user.Name)
-			patterns[i*4+2] = fmt.Sprintf("%s", user.ID)
-			patterns[i*4+3] = fmt.Sprintf("%s", user.Name)
-		}
-
-		userNameReplacer = strings.NewReplacer(patterns...)
-
-		query := `
-SELECT c.id AS id
-FROM channels c
-LEFT JOIN users u ON u.id = c.user
-WHERE u.name = ? OR c.name = ?
-`
-
-		var results []*struct {
-			ID string `boil:"id"`
-		}
-
-		if err := queries.Raw(query, args[0], args[0]).Bind(ctx, tx, &results); err != nil {
+		if err != nil {
 			return err
 		}
-		if len(results) < 1 {
-			return fmt.Errorf("failed to find user or channel: %s", args[0])
-		}
+
+		userNameReplacer = utility.UserNameReplacer(users)
 
 		conversationFunc := func(conversationCount int, message slack.Message) bool {
 			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
@@ -97,6 +69,7 @@ WHERE u.name = ? OR c.name = ?
 
 			return true
 		}
+
 		replyFunc := func(replyCount int, message slack.Message) bool {
 			if yes, _ := cmd.Flags().GetBool("fetch-all-messages"); yes {
 				return true
@@ -112,16 +85,16 @@ WHERE u.name = ? OR c.name = ?
 		}
 
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
-			goto LOAD_CACHE2
+			goto LOAD_MESSAGE_CACHE
 		}
-		if err := client.FetchMessages(ctx, tx, results[0].ID, conversationFunc, replyFunc); err != nil {
+		if err := client.FetchMessages(ctx, tx, channelID, conversationFunc, replyFunc); err != nil {
 			return err
 		}
 
-	LOAD_CACHE2:
+	LOAD_MESSAGE_CACHE:
 
 		messages, err = models.Messages(
-			models.MessageWhere.Channel.EQ(results[0].ID),
+			models.MessageWhere.Channel.EQ(channelID),
 			qm.OrderBy(models.MessageColumns.CreatedAt+" DESC"),
 		).All(ctx, tx)
 
@@ -138,7 +111,7 @@ WHERE u.name = ? OR c.name = ?
 		cmd.Printf(
 			"@%s %s %s\n",
 			userNameReplacer.Replace(message.User),
-			messageReplacer.Replace(userNameReplacer.Replace(message.Text)),
+			utility.MessageReplacer().Replace(userNameReplacer.Replace(message.Text)),
 			utility.Ago(message.CreatedAt),
 		)
 	}

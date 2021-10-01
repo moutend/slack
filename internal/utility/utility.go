@@ -1,8 +1,14 @@
 package utility
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/moutend/slack/internal/models"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 )
 
 // Ago converts time to human readable string.
@@ -33,4 +39,47 @@ func Ago(t time.Time) string {
 	} else {
 		return fmt.Sprintf("%v %v, %v", t.Day(), t.Month(), t.Year())
 	}
+}
+
+func MessageReplacer() *strings.Replacer {
+	return strings.NewReplacer(
+		"&gt;", ">",
+		"&lt;", "<",
+		"&amp;", "&",
+	)
+}
+
+func UserNameReplacer(users []*models.User) *strings.Replacer {
+	patterns := make([]string, len(users)*4)
+
+	for i, user := range users {
+		patterns[i*4] = fmt.Sprintf("<@%s>", user.ID)
+		patterns[i*4+1] = fmt.Sprintf("@%s", user.Name)
+		patterns[i*4+2] = fmt.Sprintf("%s", user.ID)
+		patterns[i*4+3] = fmt.Sprintf("%s", user.Name)
+	}
+
+	return strings.NewReplacer(patterns...)
+}
+
+func GetChannelIDByName(ctx context.Context, tx boil.ContextTransactor, name string) (string, error) {
+	query := `
+SELECT c.id AS id
+FROM channels c
+LEFT JOIN users u ON u.id = c.user
+WHERE u.name = ? OR c.name = ?
+`
+
+	var channels []*struct {
+		ID string `boil:"id"`
+	}
+
+	if err := queries.Raw(query, name, name).Bind(ctx, tx, &channels); err != nil {
+		return "", fmt.Errorf("failed to find channel or user '%s': %w", err)
+	}
+	if len(channels) != 1 {
+		return "", fmt.Errorf("user or channel '%s' not found", name)
+	}
+
+	return channels[0].ID, nil
 }
