@@ -1,4 +1,4 @@
 [sqlite3]
 blacklist = ["schema_migrations"]
-dbname = "./temporary.db3"
+dbname = "./cache.db3"
 output = "./internal/models"
