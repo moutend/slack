@@ -83,3 +83,24 @@ WHERE u.name = ? OR c.name = ?
 
 	return channels[0].ID, nil
 }
+
+func ExtractChannelIDAndMessageID(url string) (channelID, messageID string, err error) {
+	if !strings.HasPrefix(url, "https://") {
+		err = fmt.Errorf("utility: invalid URL")
+
+		return
+	}
+
+	elem := strings.Split(strings.TrimPrefix(url, "https://"), "/")
+
+	if len(elem) != 3 {
+		err = fmt.Errorf("utility: URL must be 'https://example.slack.com/archives/xxx/yyy'")
+
+		return
+	}
+
+	channelID = elem[1]
+	messageID = elem[2]
+
+	return
+}
