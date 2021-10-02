@@ -98,6 +98,7 @@ CREATE TABLE channel (
 );
 
 CREATE TABLE message (
+  client_msg_id STRING NOT NULL,
   `type` STRING NOT NULL,
   channel STRING NOT NULL,
   user STRING NOT NULL,
@@ -105,6 +106,9 @@ CREATE TABLE message (
   `timestamp` STRING NOT NULL,
   thread_timestamp STRING NOT NULL,
   is_starred BOOLEAN NOT NULL,
+  -- pinned_to
+  -- attachments
+  -- edited
   last_read STRING NOT NULL,
   subscribed BOOLEAN NOT NULL,
   unread_count INT NOT NULL,
@@ -113,8 +117,29 @@ CREATE TABLE message (
   deleted_timestamp STRING NOT NULL,
   event_timestamp STRING NOT NULL,
   bot_id STRING NOT NULL,
+  user_name STRING NOT NULL,
+  -- icons
+  -- bot_profile
+  inviter STRING NOT NULL,
+  topic STRING NOT NULL,
+  purpose STRING NOT NULL,
   name STRING NOT NULL,
+  old_name STRING NOT NULL,
+  -- members
   reply_count INT NOT NULL,
+  -- replies
+  parent_user_id STRING NOT NULL,
+  -- files
+  upload BOOLEAN NOT NULL,
+  -- comment
+  item_type STRING NOT NULL,
+  reply_to INT NOT NULL,
+  team STRING NOT NULL,
+  -- reactions
+  response_type STRING NOT NULL,
+  replace_original BOOLEAN NOT NULL,
+  delete_original BOOLEAN NOT NULL,
+  -- blocks
 
   created_at DATETIME NOT NULL,
 

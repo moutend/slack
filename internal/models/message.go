@@ -22,6 +22,7 @@ import (
 
 // Message is an object representing the database table.
 type Message struct {
+	ClientMSGID      string    `boil:"client_msg_id" json:"client_msg_id" toml:"client_msg_id" yaml:"client_msg_id"`
 	Type             string    `boil:"type" json:"type" toml:"type" yaml:"type"`
 	Channel          string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
 	User             string    `boil:"user" json:"user" toml:"user" yaml:"user"`
@@ -37,8 +38,21 @@ type Message struct {
 	DeletedTimestamp string    `boil:"deleted_timestamp" json:"deleted_timestamp" toml:"deleted_timestamp" yaml:"deleted_timestamp"`
 	EventTimestamp   string    `boil:"event_timestamp" json:"event_timestamp" toml:"event_timestamp" yaml:"event_timestamp"`
 	BotID            string    `boil:"bot_id" json:"bot_id" toml:"bot_id" yaml:"bot_id"`
+	UserName         string    `boil:"user_name" json:"user_name" toml:"user_name" yaml:"user_name"`
+	Inviter          string    `boil:"inviter" json:"inviter" toml:"inviter" yaml:"inviter"`
+	Topic            string    `boil:"topic" json:"topic" toml:"topic" yaml:"topic"`
+	Purpose          string    `boil:"purpose" json:"purpose" toml:"purpose" yaml:"purpose"`
 	Name             string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	OldName          string    `boil:"old_name" json:"old_name" toml:"old_name" yaml:"old_name"`
 	ReplyCount       int64     `boil:"reply_count" json:"reply_count" toml:"reply_count" yaml:"reply_count"`
+	ParentUserID     string    `boil:"parent_user_id" json:"parent_user_id" toml:"parent_user_id" yaml:"parent_user_id"`
+	Upload           bool      `boil:"upload" json:"upload" toml:"upload" yaml:"upload"`
+	ItemType         string    `boil:"item_type" json:"item_type" toml:"item_type" yaml:"item_type"`
+	ReplyTo          int64     `boil:"reply_to" json:"reply_to" toml:"reply_to" yaml:"reply_to"`
+	Team             string    `boil:"team" json:"team" toml:"team" yaml:"team"`
+	ResponseType     string    `boil:"response_type" json:"response_type" toml:"response_type" yaml:"response_type"`
+	ReplaceOriginal  bool      `boil:"replace_original" json:"replace_original" toml:"replace_original" yaml:"replace_original"`
+	DeleteOriginal   bool      `boil:"delete_original" json:"delete_original" toml:"delete_original" yaml:"delete_original"`
 	CreatedAt        time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	R *messageR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -46,6 +60,7 @@ type Message struct {
 }
 
 var MessageColumns = struct {
+	ClientMSGID      string
 	Type             string
 	Channel          string
 	User             string
@@ -61,10 +76,24 @@ var MessageColumns = struct {
 	DeletedTimestamp string
 	EventTimestamp   string
 	BotID            string
+	UserName         string
+	Inviter          string
+	Topic            string
+	Purpose          string
 	Name             string
+	OldName          string
 	ReplyCount       string
+	ParentUserID     string
+	Upload           string
+	ItemType         string
+	ReplyTo          string
+	Team             string
+	ResponseType     string
+	ReplaceOriginal  string
+	DeleteOriginal   string
 	CreatedAt        string
 }{
+	ClientMSGID:      "client_msg_id",
 	Type:             "type",
 	Channel:          "channel",
 	User:             "user",
@@ -80,14 +109,28 @@ var MessageColumns = struct {
 	DeletedTimestamp: "deleted_timestamp",
 	EventTimestamp:   "event_timestamp",
 	BotID:            "bot_id",
+	UserName:         "user_name",
+	Inviter:          "inviter",
+	Topic:            "topic",
+	Purpose:          "purpose",
 	Name:             "name",
+	OldName:          "old_name",
 	ReplyCount:       "reply_count",
+	ParentUserID:     "parent_user_id",
+	Upload:           "upload",
+	ItemType:         "item_type",
+	ReplyTo:          "reply_to",
+	Team:             "team",
+	ResponseType:     "response_type",
+	ReplaceOriginal:  "replace_original",
+	DeleteOriginal:   "delete_original",
 	CreatedAt:        "created_at",
 }
 
 // Generated where
 
 var MessageWhere = struct {
+	ClientMSGID      whereHelperstring
 	Type             whereHelperstring
 	Channel          whereHelperstring
 	User             whereHelperstring
@@ -103,10 +146,24 @@ var MessageWhere = struct {
 	DeletedTimestamp whereHelperstring
 	EventTimestamp   whereHelperstring
 	BotID            whereHelperstring
+	UserName         whereHelperstring
+	Inviter          whereHelperstring
+	Topic            whereHelperstring
+	Purpose          whereHelperstring
 	Name             whereHelperstring
+	OldName          whereHelperstring
 	ReplyCount       whereHelperint64
+	ParentUserID     whereHelperstring
+	Upload           whereHelperbool
+	ItemType         whereHelperstring
+	ReplyTo          whereHelperint64
+	Team             whereHelperstring
+	ResponseType     whereHelperstring
+	ReplaceOriginal  whereHelperbool
+	DeleteOriginal   whereHelperbool
 	CreatedAt        whereHelpertime_Time
 }{
+	ClientMSGID:      whereHelperstring{field: "\"message\".\"client_msg_id\""},
 	Type:             whereHelperstring{field: "\"message\".\"type\""},
 	Channel:          whereHelperstring{field: "\"message\".\"channel\""},
 	User:             whereHelperstring{field: "\"message\".\"user\""},
@@ -122,8 +179,21 @@ var MessageWhere = struct {
 	DeletedTimestamp: whereHelperstring{field: "\"message\".\"deleted_timestamp\""},
 	EventTimestamp:   whereHelperstring{field: "\"message\".\"event_timestamp\""},
 	BotID:            whereHelperstring{field: "\"message\".\"bot_id\""},
+	UserName:         whereHelperstring{field: "\"message\".\"user_name\""},
+	Inviter:          whereHelperstring{field: "\"message\".\"inviter\""},
+	Topic:            whereHelperstring{field: "\"message\".\"topic\""},
+	Purpose:          whereHelperstring{field: "\"message\".\"purpose\""},
 	Name:             whereHelperstring{field: "\"message\".\"name\""},
+	OldName:          whereHelperstring{field: "\"message\".\"old_name\""},
 	ReplyCount:       whereHelperint64{field: "\"message\".\"reply_count\""},
+	ParentUserID:     whereHelperstring{field: "\"message\".\"parent_user_id\""},
+	Upload:           whereHelperbool{field: "\"message\".\"upload\""},
+	ItemType:         whereHelperstring{field: "\"message\".\"item_type\""},
+	ReplyTo:          whereHelperint64{field: "\"message\".\"reply_to\""},
+	Team:             whereHelperstring{field: "\"message\".\"team\""},
+	ResponseType:     whereHelperstring{field: "\"message\".\"response_type\""},
+	ReplaceOriginal:  whereHelperbool{field: "\"message\".\"replace_original\""},
+	DeleteOriginal:   whereHelperbool{field: "\"message\".\"delete_original\""},
 	CreatedAt:        whereHelpertime_Time{field: "\"message\".\"created_at\""},
 }
 
@@ -144,8 +214,8 @@ func (*messageR) NewStruct() *messageR {
 type messageL struct{}
 
 var (
-	messageAllColumns            = []string{"type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "name", "reply_count", "created_at"}
-	messageColumnsWithoutDefault = []string{"type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "name", "reply_count", "created_at"}
+	messageAllColumns            = []string{"client_msg_id", "type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "user_name", "inviter", "topic", "purpose", "name", "old_name", "reply_count", "parent_user_id", "upload", "item_type", "reply_to", "team", "response_type", "replace_original", "delete_original", "created_at"}
+	messageColumnsWithoutDefault = []string{"client_msg_id", "type", "channel", "user", "text", "timestamp", "thread_timestamp", "is_starred", "last_read", "subscribed", "unread_count", "sub_type", "hidden", "deleted_timestamp", "event_timestamp", "bot_id", "user_name", "inviter", "topic", "purpose", "name", "old_name", "reply_count", "parent_user_id", "upload", "item_type", "reply_to", "team", "response_type", "replace_original", "delete_original", "created_at"}
 	messageColumnsWithDefault    = []string{}
 	messagePrimaryKeyColumns     = []string{"timestamp"}
 )
