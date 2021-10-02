@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/moutend/slack/internal/models"
@@ -64,25 +65,25 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 
 		fetchAllMessages, _ := cmd.Flags().GetBool("fetch-all-messages")
 		fetchAllMessages = fetchAllMessages || count == 0
-
+		fmt.Println("@@@", fetchAllMessages, count)
 		client.KeepFetchingMessages = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
-			max, _ := cmd.Flags().GetInt("max-fetch-messages")
-
-			if fetchedMessagesCount > max {
-				return false
+			if fetchAllMessages {
+				return true
 			}
 
-			return fetchAllMessages
+			max, _ := cmd.Flags().GetInt("max-fetch-messages")
+
+			return fetchedMessagesCount <= max
 		}
 
 		client.KeepFetchingReplies = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
-			max, _ := cmd.Flags().GetInt("max-fetch-messages")
-
-			if fetchedMessagesCount > max {
-				return false
+			if fetchAllMessages {
+				return true
 			}
 
-			return fetchAllMessages
+			max, _ := cmd.Flags().GetInt("max-fetch-messages")
+
+			return fetchedMessagesCount <= max
 		}
 
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {

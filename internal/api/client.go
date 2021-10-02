@@ -290,6 +290,7 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 	conversationCount := 0
 	replyCount := 0
 	timestamps := []string{}
+	retry := 10
 
 	parameter := &slack.GetConversationHistoryParameters{
 		ChannelID: channelID,
@@ -304,6 +305,20 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 
 		result, err := a.user.GetConversationHistoryContext(ctx, parameter)
 
+		if err != nil && strings.Contains(err.Error(), "slack rate limit exceeded") {
+			a.debug.Printf("FetchMessages: detect API rate limit: %w", err)
+
+			if retry == 0 {
+				return nil
+			}
+
+			a.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
+			time.Sleep(2 * time.Second)
+
+			retry -= 1
+
+			continue
+		}
 		if err != nil {
 			return fmt.Errorf("api: failed to fetch messages: %w", err)
 		}
@@ -353,8 +368,22 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 
 			messages, hasMore, nextCursor, err := a.user.GetConversationRepliesContext(ctx, parameter)
 
+			if err != nil && strings.Contains(err.Error(), "slack rate limit exceeded") {
+				a.debug.Printf("FetchMessages: detect API rate limit: %w", err)
+
+				if retry == 0 {
+					return nil
+				}
+
+				a.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
+				time.Sleep(2 * time.Second)
+
+				retry -= 1
+
+				continue
+			}
 			if err != nil {
-				return fmt.Errorf("api: failed to fetch replies: %w")
+				return fmt.Errorf("api: failed to fetch replies: %w", err)
 			}
 			for _, message := range messages {
 				// I don't know why, but the Message.Channel field seems to be always empty.
