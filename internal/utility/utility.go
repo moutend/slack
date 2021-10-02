@@ -84,23 +84,24 @@ WHERE u.name = ? OR c.name = ?
 	return channels[0].ID, nil
 }
 
-func ExtractChannelIDAndMessageID(url string) (channelID, messageID string, err error) {
+// ExtractChannelIDAndTimestamp extracts channel id and timestamp from URL. The timestamp is a very long integer, not a dot separated UNIX timestamp.
+func ExtractChannelIDAndTimestamp(url string) (channelID, timestamp string, err error) {
 	if !strings.HasPrefix(url, "https://") {
-		err = fmt.Errorf("utility: invalid URL")
+		err = fmt.Errorf("URL must begins with 'https://'")
 
 		return
 	}
 
 	elem := strings.Split(strings.TrimPrefix(url, "https://"), "/")
 
-	if len(elem) != 3 {
-		err = fmt.Errorf("utility: URL must be 'https://example.slack.com/archives/xxx/yyy'")
+	if len(elem) != 4 {
+		err = fmt.Errorf("URL must be 'https://example.slack.com/archives/xxx/yyy'")
 
 		return
 	}
 
-	channelID = elem[1]
-	messageID = elem[2]
+	channelID = elem[2]
+	timestamp = strings.TrimPrefix(elem[3], "p")
 
 	return
 }

@@ -568,7 +568,7 @@ func testMessagesSelect(t *testing.T) {
 }
 
 var (
-	messageDBTypes = map[string]string{`ClientMSGID`: `STRING`, `Type`: `STRING`, `Channel`: `STRING`, `User`: `STRING`, `Text`: `STRING`, `Timestamp`: `STRING`, `ThreadTimestamp`: `STRING`, `IsStarred`: `BOOLEAN`, `LastRead`: `STRING`, `Subscribed`: `BOOLEAN`, `UnreadCount`: `INT`, `SubType`: `STRING`, `Hidden`: `BOOLEAN`, `DeletedTimestamp`: `STRING`, `EventTimestamp`: `STRING`, `BotID`: `STRING`, `UserName`: `STRING`, `Inviter`: `STRING`, `Topic`: `STRING`, `Purpose`: `STRING`, `Name`: `STRING`, `OldName`: `STRING`, `ReplyCount`: `INT`, `ParentUserID`: `STRING`, `Upload`: `BOOLEAN`, `ItemType`: `STRING`, `ReplyTo`: `INT`, `Team`: `STRING`, `ResponseType`: `STRING`, `ReplaceOriginal`: `BOOLEAN`, `DeleteOriginal`: `BOOLEAN`, `CreatedAt`: `DATETIME`}
+	messageDBTypes = map[string]string{`ClientMSGID`: `TEXT`, `Type`: `TEXT`, `Channel`: `TEXT`, `User`: `TEXT`, `Text`: `TEXT`, `Timestamp`: `TEXT`, `ThreadTimestamp`: `TEXT`, `IsStarred`: `BOOLEAN`, `LastRead`: `TEXT`, `Subscribed`: `BOOLEAN`, `UnreadCount`: `INTEGER`, `SubType`: `TEXT`, `Hidden`: `BOOLEAN`, `DeletedTimestamp`: `TEXT`, `EventTimestamp`: `TEXT`, `BotID`: `TEXT`, `UserName`: `TEXT`, `Inviter`: `TEXT`, `Topic`: `TEXT`, `Purpose`: `TEXT`, `Name`: `TEXT`, `OldName`: `TEXT`, `ReplyCount`: `INTEGER`, `ParentUserID`: `TEXT`, `Upload`: `BOOLEAN`, `ItemType`: `TEXT`, `ReplyTo`: `INTEGER`, `Team`: `TEXT`, `ResponseType`: `TEXT`, `ReplaceOriginal`: `BOOLEAN`, `DeleteOriginal`: `BOOLEAN`, `CreatedAt`: `DATETIME`}
 	_              = bytes.MinRead
 )
 

@@ -568,7 +568,7 @@ func testUserProfilesSelect(t *testing.T) {
 }
 
 var (
-	userProfileDBTypes = map[string]string{`FirstName`: `STRING`, `LastName`: `STRING`, `RealName`: `STRING`, `RealNameNormalized`: `STRING`, `DisplayName`: `STRING`, `DisplayNameNormalized`: `STRING`, `Email`: `STRING`, `Skype`: `STRING`, `Phone`: `STRING`, `Image24`: `STRING`, `Image32`: `STRING`, `Image48`: `STRING`, `Image72`: `STRING`, `Image192`: `STRING`, `Image512`: `STRING`, `ImageOriginal`: `STRING`, `Title`: `STRING`, `BotID`: `STRING`, `APIAppID`: `STRING`, `StatusText`: `STRING`, `StatusEmoji`: `STRING`, `StatusExpiration`: `INT`, `Team`: `STRING`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
+	userProfileDBTypes = map[string]string{`FirstName`: `TEXT`, `LastName`: `TEXT`, `RealName`: `TEXT`, `RealNameNormalized`: `TEXT`, `DisplayName`: `TEXT`, `DisplayNameNormalized`: `TEXT`, `Email`: `TEXT`, `Skype`: `TEXT`, `Phone`: `TEXT`, `Image24`: `TEXT`, `Image32`: `TEXT`, `Image48`: `TEXT`, `Image72`: `TEXT`, `Image192`: `TEXT`, `Image512`: `TEXT`, `ImageOriginal`: `TEXT`, `Title`: `TEXT`, `BotID`: `TEXT`, `APIAppID`: `TEXT`, `StatusText`: `TEXT`, `StatusEmoji`: `TEXT`, `StatusExpiration`: `INTEGER`, `Team`: `TEXT`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
 	_                  = bytes.MinRead
 )
 
