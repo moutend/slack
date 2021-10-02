@@ -10,8 +10,25 @@ CREATE TABLE user (
   tz STRING NOT NULL,
   tz_label STRING NOT NULL,
   tz_offset INTEGER NOT NULL,
+  -- profile
+  is_bot BOOL NOT NULL,
+  is_admin BOOL NOT NULL,
+  is_owner BOOL NOT NULL,
+  is_primary_owner BOOL NOT NULL,
+  is_restricted BOOL NOT NULL,
+  is_ultra_restricted BOOL NOT NULL,
+  is_stranger BOOL NOT NULL,
+  is_app_user BOOL NOT NULL,
+  is_invited_user BOOL NOT NULL,
+  has_2fa BOOL NOT NULL,
+  has_files BOOL NOT NULL,
+  presence STRING NOT NULL,
+  locale STRING NOT NULL,
+  -- updated
+  -- enterprise
 
   created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
 
   PRIMARY KEY (id)
 );

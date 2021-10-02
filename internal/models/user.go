@@ -22,69 +22,139 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	TeamID    string    `boil:"team_id" json:"team_id" toml:"team_id" yaml:"team_id"`
-	Name      string    `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Deleted   bool      `boil:"deleted" json:"deleted" toml:"deleted" yaml:"deleted"`
-	Color     string    `boil:"color" json:"color" toml:"color" yaml:"color"`
-	RealName  string    `boil:"real_name" json:"real_name" toml:"real_name" yaml:"real_name"`
-	TZ        string    `boil:"tz" json:"tz" toml:"tz" yaml:"tz"`
-	TZLabel   string    `boil:"tz_label" json:"tz_label" toml:"tz_label" yaml:"tz_label"`
-	TZOffset  int64     `boil:"tz_offset" json:"tz_offset" toml:"tz_offset" yaml:"tz_offset"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ID                string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	TeamID            string    `boil:"team_id" json:"team_id" toml:"team_id" yaml:"team_id"`
+	Name              string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Deleted           bool      `boil:"deleted" json:"deleted" toml:"deleted" yaml:"deleted"`
+	Color             string    `boil:"color" json:"color" toml:"color" yaml:"color"`
+	RealName          string    `boil:"real_name" json:"real_name" toml:"real_name" yaml:"real_name"`
+	TZ                string    `boil:"tz" json:"tz" toml:"tz" yaml:"tz"`
+	TZLabel           string    `boil:"tz_label" json:"tz_label" toml:"tz_label" yaml:"tz_label"`
+	TZOffset          int64     `boil:"tz_offset" json:"tz_offset" toml:"tz_offset" yaml:"tz_offset"`
+	IsBot             string    `boil:"is_bot" json:"is_bot" toml:"is_bot" yaml:"is_bot"`
+	IsAdmin           string    `boil:"is_admin" json:"is_admin" toml:"is_admin" yaml:"is_admin"`
+	IsOwner           string    `boil:"is_owner" json:"is_owner" toml:"is_owner" yaml:"is_owner"`
+	IsPrimaryOwner    string    `boil:"is_primary_owner" json:"is_primary_owner" toml:"is_primary_owner" yaml:"is_primary_owner"`
+	IsRestricted      string    `boil:"is_restricted" json:"is_restricted" toml:"is_restricted" yaml:"is_restricted"`
+	IsUltraRestricted string    `boil:"is_ultra_restricted" json:"is_ultra_restricted" toml:"is_ultra_restricted" yaml:"is_ultra_restricted"`
+	IsStranger        string    `boil:"is_stranger" json:"is_stranger" toml:"is_stranger" yaml:"is_stranger"`
+	IsAppUser         string    `boil:"is_app_user" json:"is_app_user" toml:"is_app_user" yaml:"is_app_user"`
+	IsInvitedUser     string    `boil:"is_invited_user" json:"is_invited_user" toml:"is_invited_user" yaml:"is_invited_user"`
+	Has2fa            string    `boil:"has_2fa" json:"has_2fa" toml:"has_2fa" yaml:"has_2fa"`
+	HasFiles          string    `boil:"has_files" json:"has_files" toml:"has_files" yaml:"has_files"`
+	Presence          string    `boil:"presence" json:"presence" toml:"presence" yaml:"presence"`
+	Locale            string    `boil:"locale" json:"locale" toml:"locale" yaml:"locale"`
+	CreatedAt         time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt         time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var UserColumns = struct {
-	ID        string
-	TeamID    string
-	Name      string
-	Deleted   string
-	Color     string
-	RealName  string
-	TZ        string
-	TZLabel   string
-	TZOffset  string
-	CreatedAt string
+	ID                string
+	TeamID            string
+	Name              string
+	Deleted           string
+	Color             string
+	RealName          string
+	TZ                string
+	TZLabel           string
+	TZOffset          string
+	IsBot             string
+	IsAdmin           string
+	IsOwner           string
+	IsPrimaryOwner    string
+	IsRestricted      string
+	IsUltraRestricted string
+	IsStranger        string
+	IsAppUser         string
+	IsInvitedUser     string
+	Has2fa            string
+	HasFiles          string
+	Presence          string
+	Locale            string
+	CreatedAt         string
+	UpdatedAt         string
 }{
-	ID:        "id",
-	TeamID:    "team_id",
-	Name:      "name",
-	Deleted:   "deleted",
-	Color:     "color",
-	RealName:  "real_name",
-	TZ:        "tz",
-	TZLabel:   "tz_label",
-	TZOffset:  "tz_offset",
-	CreatedAt: "created_at",
+	ID:                "id",
+	TeamID:            "team_id",
+	Name:              "name",
+	Deleted:           "deleted",
+	Color:             "color",
+	RealName:          "real_name",
+	TZ:                "tz",
+	TZLabel:           "tz_label",
+	TZOffset:          "tz_offset",
+	IsBot:             "is_bot",
+	IsAdmin:           "is_admin",
+	IsOwner:           "is_owner",
+	IsPrimaryOwner:    "is_primary_owner",
+	IsRestricted:      "is_restricted",
+	IsUltraRestricted: "is_ultra_restricted",
+	IsStranger:        "is_stranger",
+	IsAppUser:         "is_app_user",
+	IsInvitedUser:     "is_invited_user",
+	Has2fa:            "has_2fa",
+	HasFiles:          "has_files",
+	Presence:          "presence",
+	Locale:            "locale",
+	CreatedAt:         "created_at",
+	UpdatedAt:         "updated_at",
 }
 
 // Generated where
 
 var UserWhere = struct {
-	ID        whereHelperstring
-	TeamID    whereHelperstring
-	Name      whereHelperstring
-	Deleted   whereHelperbool
-	Color     whereHelperstring
-	RealName  whereHelperstring
-	TZ        whereHelperstring
-	TZLabel   whereHelperstring
-	TZOffset  whereHelperint64
-	CreatedAt whereHelpertime_Time
+	ID                whereHelperstring
+	TeamID            whereHelperstring
+	Name              whereHelperstring
+	Deleted           whereHelperbool
+	Color             whereHelperstring
+	RealName          whereHelperstring
+	TZ                whereHelperstring
+	TZLabel           whereHelperstring
+	TZOffset          whereHelperint64
+	IsBot             whereHelperstring
+	IsAdmin           whereHelperstring
+	IsOwner           whereHelperstring
+	IsPrimaryOwner    whereHelperstring
+	IsRestricted      whereHelperstring
+	IsUltraRestricted whereHelperstring
+	IsStranger        whereHelperstring
+	IsAppUser         whereHelperstring
+	IsInvitedUser     whereHelperstring
+	Has2fa            whereHelperstring
+	HasFiles          whereHelperstring
+	Presence          whereHelperstring
+	Locale            whereHelperstring
+	CreatedAt         whereHelpertime_Time
+	UpdatedAt         whereHelpertime_Time
 }{
-	ID:        whereHelperstring{field: "\"user\".\"id\""},
-	TeamID:    whereHelperstring{field: "\"user\".\"team_id\""},
-	Name:      whereHelperstring{field: "\"user\".\"name\""},
-	Deleted:   whereHelperbool{field: "\"user\".\"deleted\""},
-	Color:     whereHelperstring{field: "\"user\".\"color\""},
-	RealName:  whereHelperstring{field: "\"user\".\"real_name\""},
-	TZ:        whereHelperstring{field: "\"user\".\"tz\""},
-	TZLabel:   whereHelperstring{field: "\"user\".\"tz_label\""},
-	TZOffset:  whereHelperint64{field: "\"user\".\"tz_offset\""},
-	CreatedAt: whereHelpertime_Time{field: "\"user\".\"created_at\""},
+	ID:                whereHelperstring{field: "\"user\".\"id\""},
+	TeamID:            whereHelperstring{field: "\"user\".\"team_id\""},
+	Name:              whereHelperstring{field: "\"user\".\"name\""},
+	Deleted:           whereHelperbool{field: "\"user\".\"deleted\""},
+	Color:             whereHelperstring{field: "\"user\".\"color\""},
+	RealName:          whereHelperstring{field: "\"user\".\"real_name\""},
+	TZ:                whereHelperstring{field: "\"user\".\"tz\""},
+	TZLabel:           whereHelperstring{field: "\"user\".\"tz_label\""},
+	TZOffset:          whereHelperint64{field: "\"user\".\"tz_offset\""},
+	IsBot:             whereHelperstring{field: "\"user\".\"is_bot\""},
+	IsAdmin:           whereHelperstring{field: "\"user\".\"is_admin\""},
+	IsOwner:           whereHelperstring{field: "\"user\".\"is_owner\""},
+	IsPrimaryOwner:    whereHelperstring{field: "\"user\".\"is_primary_owner\""},
+	IsRestricted:      whereHelperstring{field: "\"user\".\"is_restricted\""},
+	IsUltraRestricted: whereHelperstring{field: "\"user\".\"is_ultra_restricted\""},
+	IsStranger:        whereHelperstring{field: "\"user\".\"is_stranger\""},
+	IsAppUser:         whereHelperstring{field: "\"user\".\"is_app_user\""},
+	IsInvitedUser:     whereHelperstring{field: "\"user\".\"is_invited_user\""},
+	Has2fa:            whereHelperstring{field: "\"user\".\"has_2fa\""},
+	HasFiles:          whereHelperstring{field: "\"user\".\"has_files\""},
+	Presence:          whereHelperstring{field: "\"user\".\"presence\""},
+	Locale:            whereHelperstring{field: "\"user\".\"locale\""},
+	CreatedAt:         whereHelpertime_Time{field: "\"user\".\"created_at\""},
+	UpdatedAt:         whereHelpertime_Time{field: "\"user\".\"updated_at\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -104,8 +174,8 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "created_at"}
-	userColumnsWithoutDefault = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "created_at"}
+	userAllColumns            = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "is_bot", "is_admin", "is_owner", "is_primary_owner", "is_restricted", "is_ultra_restricted", "is_stranger", "is_app_user", "is_invited_user", "has_2fa", "has_files", "presence", "locale", "created_at", "updated_at"}
+	userColumnsWithoutDefault = []string{"id", "team_id", "name", "deleted", "color", "real_name", "tz", "tz_label", "tz_offset", "is_bot", "is_admin", "is_owner", "is_primary_owner", "is_restricted", "is_ultra_restricted", "is_stranger", "is_app_user", "is_invited_user", "has_2fa", "has_files", "presence", "locale", "created_at", "updated_at"}
 	userColumnsWithDefault    = []string{}
 	userPrimaryKeyColumns     = []string{"id"}
 )
@@ -431,6 +501,9 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		if o.CreatedAt.IsZero() {
 			o.CreatedAt = currTime
 		}
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
+		}
 	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
@@ -523,6 +596,12 @@ CacheNoHooks:
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		o.UpdatedAt = currTime
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
