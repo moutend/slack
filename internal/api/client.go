@@ -21,6 +21,9 @@ var (
 	discard = log.New(io.Discard, "debug: ", 0)
 )
 
+// FetchMessagesConditionFunc is a function which indicates continuation. Fetching is performed while this function returns true.
+type FetchMessagesConditionFunc func(fetchedMessageCount int, messages []slack.Message) (keepFetching bool)
+
 // Client represents API client.
 type Client struct {
 	botToken  string
@@ -54,24 +57,24 @@ func (c *Client) SetLogger(w io.Writer) {
 }
 
 // Whoami returns login user identities.
-func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
+func (c *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	var (
 		a1, a2 *slack.AuthTestResponse
 		u1, u2 *url.URL
 	)
 
-	a1, err = a.bot.AuthTest()
+	a1, err = c.bot.AuthTest()
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to authorize: %w", err)
+		err = fmt.Errorf("api: failed to authorize: %w", err)
 
 		return
 	}
 
-	a2, err = a.user.AuthTest()
+	a2, err = c.user.AuthTest()
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to authorize: %w", err)
+		err = fmt.Errorf("api: failed to authorize: %w", err)
 
 		return
 	}
@@ -79,7 +82,7 @@ func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	u1, err = url.Parse(a1.URL)
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to parse URL: %w", err)
+		err = fmt.Errorf("api: failed to parse URL: %w", err)
 
 		return
 	}
@@ -87,12 +90,12 @@ func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	u2, err = url.Parse(a2.URL)
 
 	if err != nil {
-		err = fmt.Errorf("client: failed to parse URL: %w", err)
+		err = fmt.Errorf("api: failed to parse URL: %w", err)
 
 		return
 	}
 	if u1.Host != u2.Host {
-		err = fmt.Errorf("client: bot token or user token is invalid (bot=%q,user=%q)", u1.Host, u2.Host)
+		err = fmt.Errorf("api: bot token or user token is invalid (bot=%q,user=%q)", u1.Host, u2.Host)
 
 		return
 	}
@@ -273,7 +276,18 @@ func (c *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) e
 	return nil
 }
 
-func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack.Message) error {
+// UpsertMessage updates or inserts given message into database.
+func (c *Client) UpsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack.Message) error {
+	if c.debug != discard {
+		data, err := json.Marshal(message)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertMessage: raw data: %q\n", string(data))
+	}
+
 	m, err := models.FindMessage(ctx, tx, message.Timestamp)
 
 	if err != nil && err != sql.ErrNoRows {
@@ -321,17 +335,14 @@ func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack
 	return err
 }
 
-// FetchMessagesConditionFunc is a function which indicates continuation. Fetching is performed while this function returns true.
-type FetchMessagesConditionFunc func(fetchedMessageCount int, messages []slack.Message) (keepFetching bool)
-
-// FetchMessages fetches and saves information about messages.
-func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string) error {
-	defer a.debug.Println("FetchMessages: done")
+// FetchMessages fetches and saves messages.
+func (c *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string) error {
+	defer c.debug.Println("FetchMessages: done")
 
 	conversationCount := 0
 	replyCount := 0
 	timestamps := []string{}
-	retry := 10
+	retry := 25
 
 	parameter := &slack.GetConversationHistoryParameters{
 		ChannelID: channelID,
@@ -342,18 +353,18 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 	}
 
 	for {
-		a.debug.Printf("FetchMessages: fetch messages: cursor: %v\n", parameter.Cursor)
+		c.debug.Printf("FetchMessages: fetch messages: cursor: %v\n", parameter.Cursor)
 
-		result, err := a.user.GetConversationHistoryContext(ctx, parameter)
+		result, err := c.user.GetConversationHistoryContext(ctx, parameter)
 
 		if err != nil && strings.Contains(err.Error(), "slack rate limit exceeded") {
-			a.debug.Printf("FetchMessages: detect API rate limit: %w", err)
+			c.debug.Printf("FetchMessages: detect API rate limit: %w", err)
 
 			if retry == 0 {
 				return nil
 			}
 
-			a.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
+			c.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
 			time.Sleep(2 * time.Second)
 
 			retry -= 1
@@ -370,15 +381,15 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 			if message.ReplyCount > 0 {
 				timestamps = append(timestamps, message.Timestamp)
 			}
-			if err := upsertMessage(ctx, tx, message); err != nil {
+			if err := c.UpsertMessage(ctx, tx, message); err != nil {
 				return fmt.Errorf("api: failed to save message: %s: %w", message.ClientMsgID, err)
 			}
 		}
 
 		conversationCount += len(result.Messages)
 
-		if a.KeepFetchingMessages != nil && !a.KeepFetchingMessages(conversationCount, result.Messages) {
-			a.debug.Println("FetchMessages: stop fetching conversation messages")
+		if c.KeepFetchingMessages != nil && !c.KeepFetchingMessages(conversationCount, result.Messages) {
+			c.debug.Println("FetchMessages: stop fetching conversation messages")
 
 			break
 		}
@@ -386,12 +397,12 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 		parameter.Cursor = result.ResponseMetaData.NextCursor
 
 		if parameter.Cursor == "" || !result.HasMore {
-			a.debug.Println("FetchMessages: finish fetching all messages")
+			c.debug.Println("FetchMessages: finish fetching all messages")
 
 			break
 		}
 
-		a.debug.Println("FetchMessages: sleep 100 ms because rate / limit")
+		c.debug.Println("FetchMessages: sleep 100 ms because rate limit")
 		time.Sleep(100 * time.Millisecond)
 	}
 	for i, timestamp := range timestamps {
@@ -405,18 +416,18 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 		}
 
 		for {
-			a.debug.Printf("FetchMessages: fetch replies (%d/%d): cursor: %v\n", i+1, len(timestamps), parameter.Cursor)
+			c.debug.Printf("FetchMessages: fetch replies (%d/%d): cursor: %v\n", i+1, len(timestamps), parameter.Cursor)
 
-			messages, hasMore, nextCursor, err := a.user.GetConversationRepliesContext(ctx, parameter)
+			messages, hasMore, nextCursor, err := c.user.GetConversationRepliesContext(ctx, parameter)
 
 			if err != nil && strings.Contains(err.Error(), "slack rate limit exceeded") {
-				a.debug.Printf("FetchMessages: detect API rate limit: %w", err)
+				c.debug.Printf("FetchMessages: detect API rate limit: %w", err)
 
 				if retry == 0 {
 					return nil
 				}
 
-				a.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
+				c.debug.Printf("FetchMessages: sleep because reached API limitation: remaining retry count: %d", retry)
 				time.Sleep(2 * time.Second)
 
 				retry -= 1
@@ -430,15 +441,15 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 				// I don't know why, but the Message.Channel field seems to be always empty.
 				message.Channel = channelID
 
-				if err := upsertMessage(ctx, tx, message); err != nil {
+				if err := c.UpsertMessage(ctx, tx, message); err != nil {
 					return fmt.Errorf("api: failed to save reply: %s: %w", message.ClientMsgID, err)
 				}
 			}
 
 			replyCount += len(messages)
 
-			if a.KeepFetchingReplies != nil && !a.KeepFetchingReplies(replyCount, messages) {
-				a.debug.Println("FetchMessages: stop fetching replies")
+			if c.KeepFetchingReplies != nil && !c.KeepFetchingReplies(replyCount, messages) {
+				c.debug.Println("FetchMessages: stop fetching replies")
 
 				return nil
 			}
@@ -446,12 +457,12 @@ func (a *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 			parameter.Cursor = nextCursor
 
 			if parameter.Cursor == "" || !hasMore {
-				a.debug.Printf("FetchMessages: finish fetching all replies (%d/%d)\n", i+1, len(timestamps))
+				c.debug.Printf("FetchMessages: finish fetching all replies (%d/%d)\n", i+1, len(timestamps))
 
-				break
+				return nil
 			}
 
-			a.debug.Println("FetchMessages: sleep 100 ms because rate / limit")
+			c.debug.Println("FetchMessages: sleep 100 ms because rate limit")
 			time.Sleep(100 * time.Millisecond)
 		}
 	}

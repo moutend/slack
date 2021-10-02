@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/moutend/slack/internal/models"
@@ -65,7 +64,7 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 
 		fetchAllMessages, _ := cmd.Flags().GetBool("fetch-all-messages")
 		fetchAllMessages = fetchAllMessages || count == 0
-		fmt.Println("@@@", fetchAllMessages, count)
+
 		client.KeepFetchingMessages = func(fetchedMessagesCount int, messages []slack.Message) (keepFetching bool) {
 			if fetchAllMessages {
 				return true
