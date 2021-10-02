@@ -262,23 +262,24 @@ func upsertMessage(ctx context.Context, tx boil.ContextTransactor, message slack
 		m = &models.Message{}
 	}
 	if s := strings.Split(message.Timestamp, "."); len(s) < 2 {
-		return fmt.Errorf("timestamp is broken")
+		return fmt.Errorf("timestamp is broken: %s", message.Timestamp)
 	} else {
 		sec, err := strconv.Atoi(s[0])
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse seconds part of timestamp: %s: %w", message.Timestamp, err)
 		}
 
 		nano, err := strconv.Atoi(s[1])
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse nano seconds part of timestamp: %s: %w", message.Timestamp, err)
 		}
 
-		m.CreatedAt = time.Unix(int64(sec), int64(nano))
+		m.CreatedAt = time.Unix(int64(sec), int64(nano)).UTC()
 	}
 
+	m.ClientMSGID = message.ClientMsgID
 	m.Type = message.Type
 	m.Channel = message.Channel
 	m.User = message.User
