@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"strconv"
@@ -13,9 +13,12 @@ import (
 	"time"
 
 	"github.com/moutend/slack/internal/models"
-	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+)
+
+var (
+	discard = log.New(io.Discard, "debug: ", 0)
 )
 
 // Client represents API client.
@@ -37,7 +40,7 @@ func New(botToken, userToken string) *Client {
 	return &Client{
 		bot:   slack.New(botToken),
 		user:  slack.New(userToken),
-		debug: log.New(ioutil.Discard, "debug: ", 0),
+		debug: discard,
 	}
 }
 
@@ -45,13 +48,9 @@ func New(botToken, userToken string) *Client {
 func (c *Client) SetLogger(w io.Writer) {
 	if w != nil {
 		c.debug = log.New(w, "debug: ", 0)
-
-		c.debug.Println("SetLogger: start debugging")
-
-		return
 	}
 
-	c.debug = log.New(ioutil.Discard, "debug:", 0)
+	c.debug.Println("SetLogger: start debugging")
 }
 
 // Whoami returns login user identities.
@@ -107,7 +106,18 @@ func (a *Client) Whoami() (botName, botID, userName, userID string, err error) {
 	return
 }
 
-func upsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User) error {
+// UpsertUser updates or inserts given user into database.
+func (c *Client) UpsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User) error {
+	if c.debug != discard {
+		data, err := json.Marshal(user)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertUser: raw data: %q\n", string(data))
+	}
+
 	u, err := models.FindUser(ctx, tx, user.ID)
 
 	if err != nil && err != sql.ErrNoRows {
@@ -152,73 +162,84 @@ func upsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User)
 	return err
 }
 
-// FetchUsers fetches and saves information about users.
-func (a *Client) FetchUsers(ctx context.Context, tx boil.ContextTransactor) error {
-	defer a.debug.Println("FetchUsers: done")
+// FetchUsers fetches and saves users.
+func (c *Client) FetchUsers(ctx context.Context, tx boil.ContextTransactor) error {
+	defer c.debug.Println("FetchUsers: done")
 
-	users, err := a.bot.GetUsersContext(ctx)
+	users, err := c.bot.GetUsersContext(ctx)
 
 	if err != nil {
-		return errors.Wrap(err, "failed to fetch users")
+		return fmt.Errorf("api: failed to fetch users: %w", err)
 	}
 	for _, user := range users {
-		if err := upsertUser(ctx, tx, user); err != nil {
-			return errors.Wrap(err, "api: failed to save user")
+		if err := c.UpsertUser(ctx, tx, user); err != nil {
+			return fmt.Errorf("api: failed to save user: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func upsertChannel(ctx context.Context, tx boil.ContextTransactor, channel slack.Channel) error {
-	c, err := models.FindChannel(ctx, tx, channel.ID)
+// UpsertChannel updates or inserts given channel into database.
+func (c *Client) UpsertChannel(ctx context.Context, tx boil.ContextTransactor, channel slack.Channel) error {
+	if c.debug != discard {
+		data, err := json.Marshal(channel)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertChannel: raw data: %q\n", string(data))
+	}
+
+	ch, err := models.FindChannel(ctx, tx, channel.ID)
 
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 	if err == sql.ErrNoRows {
-		c = &models.Channel{}
+		ch = &models.Channel{}
 	}
 
-	c.ID = channel.ID
-	c.IsOpen = channel.IsOpen
-	c.LastRead = channel.LastRead
-	c.UnreadCount = int64(channel.UnreadCount)
-	c.UnreadCountDisplay = int64(channel.UnreadCountDisplay)
-	c.IsGroup = channel.IsGroup
-	c.IsShared = channel.IsShared
-	c.IsIm = channel.IsIM
-	c.IsExtShared = channel.IsExtShared
-	c.IsOrgShared = channel.IsOrgShared
-	c.IsPendingExtShared = channel.IsPendingExtShared
-	c.IsPrivate = channel.IsPrivate
-	c.IsMpim = channel.IsMpIM
-	c.Unlinked = int64(channel.Unlinked)
-	c.NameNormalized = channel.NameNormalized
-	c.NumMembers = int64(channel.NumMembers)
-	c.Creator = channel.Creator
-	c.IsArchived = channel.IsArchived
-	c.Topic = channel.Topic.Value
-	c.Purpose = channel.Purpose.Value
-	c.IsChannel = channel.IsChannel
-	c.IsGeneral = channel.IsGeneral
-	c.IsMember = channel.IsMember
-	c.Locale = channel.Locale
-	c.Name = channel.Name
-	c.User = channel.User
+	ch.ID = channel.ID
+	ch.IsOpen = channel.IsOpen
+	ch.LastRead = channel.LastRead
+	ch.UnreadCount = int64(channel.UnreadCount)
+	ch.UnreadCountDisplay = int64(channel.UnreadCountDisplay)
+	ch.IsGroup = channel.IsGroup
+	ch.IsShared = channel.IsShared
+	ch.IsIm = channel.IsIM
+	ch.IsExtShared = channel.IsExtShared
+	ch.IsOrgShared = channel.IsOrgShared
+	ch.IsPendingExtShared = channel.IsPendingExtShared
+	ch.IsPrivate = channel.IsPrivate
+	ch.IsMpim = channel.IsMpIM
+	ch.Unlinked = int64(channel.Unlinked)
+	ch.NameNormalized = channel.NameNormalized
+	ch.NumMembers = int64(channel.NumMembers)
+	ch.Creator = channel.Creator
+	ch.IsArchived = channel.IsArchived
+	ch.Topic = channel.Topic.Value
+	ch.Purpose = channel.Purpose.Value
+	ch.IsChannel = channel.IsChannel
+	ch.IsGeneral = channel.IsGeneral
+	ch.IsMember = channel.IsMember
+	ch.Locale = channel.Locale
+	ch.Name = channel.Name
+	ch.User = channel.User
 
 	if err == sql.ErrNoRows {
-		err = c.Insert(ctx, tx, boil.Infer())
+		err = ch.Insert(ctx, tx, boil.Infer())
 	} else {
-		_, err = c.Update(ctx, tx, boil.Infer())
+		_, err = ch.Update(ctx, tx, boil.Infer())
 	}
 
 	return err
 }
 
-// fetchChannels fetches and saves information about channels.
-func (a *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) error {
-	defer a.debug.Println("FetchChannels: done")
+// fetchChannels fetches and saves channels.
+func (c *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) error {
+	defer c.debug.Println("FetchChannels: done")
 
 	parameter := &slack.GetConversationsParameters{
 		Limit: 100,
@@ -226,16 +247,16 @@ func (a *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) e
 	}
 
 	for {
-		a.debug.Printf("FetchChannels: parameter: %+v\n", parameter)
+		c.debug.Printf("FetchChannels: cursor: %v\n", parameter.Cursor)
 
-		channels, nextCursor, err := a.user.GetConversationsContext(ctx, parameter)
+		channels, nextCursor, err := c.user.GetConversationsContext(ctx, parameter)
 
 		if err != nil {
-			return errors.Wrap(err, "api: failed to fetch channels")
+			return fmt.Errorf("api: failed to fetch channels: %w", err)
 		}
 		for _, channel := range channels {
-			if err := upsertChannel(ctx, tx, channel); err != nil {
-				return errors.Wrap(err, "api: failed to save channel")
+			if err := c.UpsertChannel(ctx, tx, channel); err != nil {
+				return fmt.Errorf("api: failed to save channel: %w", err)
 			}
 		}
 
@@ -245,7 +266,7 @@ func (a *Client) FetchChannels(ctx context.Context, tx boil.ContextTransactor) e
 			break
 		}
 
-		a.debug.Println("FetchChannels: sleep 100 ms because of rate/ limit")
+		c.debug.Println("FetchChannels: sleep 100 ms because of rate limit")
 		time.Sleep(100 * time.Millisecond)
 	}
 

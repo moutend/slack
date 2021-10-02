@@ -65,9 +65,12 @@ CREATE TABLE user (
 );
 
 CREATE TABLE channel (
+  -- Conversation fields
   id STRING NOT NULL,
+  -- created
   is_open BOOLEAN NOT NULL,
   last_read STRING NOT NULL,
+  -- latest
   unread_count INT NOT NULL,
   unread_count_display INT NOT NULL,
   is_group BOOLEAN NOT NULL,
@@ -81,12 +84,18 @@ CREATE TABLE channel (
   unlinked INT NOT NULL,
   name_normalized STRING NOT NULL,
   num_members INT NOT NULL,
+  -- priority DOUBLE NOT NULL,
   user STRING NOT NULL,
+
+  -- GroupConversation fields
   name STRING NOT NULL,
   creator STRING NOT NULL,
   is_archived BOOLEAN NOT NULL,
+  -- members
   topic STRING NOT NULL,
   purpose STRING NOT NULL,
+
+  -- Channel fields
   is_channel BOOLEAN NOT NULL,
   is_general BOOLEAN NOT NULL,
   is_member BOOLEAN NOT NULL,
