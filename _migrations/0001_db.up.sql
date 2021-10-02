@@ -126,7 +126,7 @@ CREATE TABLE message (
   deleted_timestamp TEXT NOT NULL,
   event_timestamp TEXT NOT NULL,
   bot_id TEXT NOT NULL,
-  user_name TEXT NOT NULL,
+  username TEXT NOT NULL,
   -- icons
   -- bot_profile
   inviter TEXT NOT NULL,

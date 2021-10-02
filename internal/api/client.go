@@ -318,13 +318,33 @@ func (c *Client) UpsertMessage(ctx context.Context, tx boil.ContextTransactor, m
 	m.Type = message.Type
 	m.Channel = message.Channel
 	m.User = message.User
+	m.Text = message.Text
 	m.Timestamp = message.Timestamp
 	m.ThreadTimestamp = message.ThreadTimestamp
-	m.Text = message.Text
+	m.IsStarred = message.IsStarred
+	m.LastRead = message.LastRead
+	m.Subscribed = message.Subscribed
+	m.UnreadCount = int64(message.UnreadCount)
 	m.SubType = message.SubType
+	m.Hidden = message.Hidden
+	m.DeletedTimestamp = message.DeletedTimestamp
+	m.EventTimestamp = message.EventTimestamp
 	m.BotID = message.BotID
+	m.Username = message.Username
+	m.Inviter = message.Inviter
+	m.Topic = message.Topic
+	m.Purpose = message.Purpose
 	m.Name = message.Name
+	m.OldName = message.OldName
 	m.ReplyCount = int64(message.ReplyCount)
+	m.ParentUserID = message.ParentUserId
+	m.Upload = message.Upload
+	m.ItemType = message.ItemType
+	m.ReplyTo = int64(message.ReplyTo)
+	m.Team = message.Team
+	m.ResponseType = message.ResponseType
+	m.ReplaceOriginal = message.ReplaceOriginal
+	m.DeleteOriginal = message.DeleteOriginal
 
 	if err == sql.ErrNoRows {
 		err = m.Insert(ctx, tx, boil.Infer())
