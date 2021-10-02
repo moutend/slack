@@ -22,54 +22,55 @@ import (
 
 // File is an object representing the database table.
 type File struct {
-	ID                 string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name               string `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Title              string `boil:"title" json:"title" toml:"title" yaml:"title"`
-	Mimetype           string `boil:"mimetype" json:"mimetype" toml:"mimetype" yaml:"mimetype"`
-	ImageExifRotation  int64  `boil:"image_exif_rotation" json:"image_exif_rotation" toml:"image_exif_rotation" yaml:"image_exif_rotation"`
-	Filetype           string `boil:"filetype" json:"filetype" toml:"filetype" yaml:"filetype"`
-	PrettyType         string `boil:"pretty_type" json:"pretty_type" toml:"pretty_type" yaml:"pretty_type"`
-	User               string `boil:"user" json:"user" toml:"user" yaml:"user"`
-	Mode               string `boil:"mode" json:"mode" toml:"mode" yaml:"mode"`
-	Editable           bool   `boil:"editable" json:"editable" toml:"editable" yaml:"editable"`
-	IsExternal         bool   `boil:"is_external" json:"is_external" toml:"is_external" yaml:"is_external"`
-	ExternalType       string `boil:"external_type" json:"external_type" toml:"external_type" yaml:"external_type"`
-	Size               int64  `boil:"size" json:"size" toml:"size" yaml:"size"`
-	URLPrivate         string `boil:"url_private" json:"url_private" toml:"url_private" yaml:"url_private"`
-	URLPrivateDownload string `boil:"url_private_download" json:"url_private_download" toml:"url_private_download" yaml:"url_private_download"`
-	OriginalH          int64  `boil:"original_h" json:"original_h" toml:"original_h" yaml:"original_h"`
-	OriginalW          int64  `boil:"original_w" json:"original_w" toml:"original_w" yaml:"original_w"`
-	Thumb64            string `boil:"thumb64" json:"thumb64" toml:"thumb64" yaml:"thumb64"`
-	Thumb80            string `boil:"thumb80" json:"thumb80" toml:"thumb80" yaml:"thumb80"`
-	Thumb160           string `boil:"thumb160" json:"thumb160" toml:"thumb160" yaml:"thumb160"`
-	Thumb360           string `boil:"thumb360" json:"thumb360" toml:"thumb360" yaml:"thumb360"`
-	Thumb360Gif        string `boil:"thumb360_gif" json:"thumb360_gif" toml:"thumb360_gif" yaml:"thumb360_gif"`
-	Thumb360W          int64  `boil:"thumb360_w" json:"thumb360_w" toml:"thumb360_w" yaml:"thumb360_w"`
-	Thumb360H          int64  `boil:"thumb360_h" json:"thumb360_h" toml:"thumb360_h" yaml:"thumb360_h"`
-	Thumb480           string `boil:"thumb480" json:"thumb480" toml:"thumb480" yaml:"thumb480"`
-	Thumb480W          int64  `boil:"thumb480_w" json:"thumb480_w" toml:"thumb480_w" yaml:"thumb480_w"`
-	Thumb480H          int64  `boil:"thumb480_h" json:"thumb480_h" toml:"thumb480_h" yaml:"thumb480_h"`
-	Thumb720           string `boil:"thumb720" json:"thumb720" toml:"thumb720" yaml:"thumb720"`
-	Thumb720W          int64  `boil:"thumb720_w" json:"thumb720_w" toml:"thumb720_w" yaml:"thumb720_w"`
-	Thumb720H          int64  `boil:"thumb720_h" json:"thumb720_h" toml:"thumb720_h" yaml:"thumb720_h"`
-	Thumb960           string `boil:"thumb960" json:"thumb960" toml:"thumb960" yaml:"thumb960"`
-	Thumb960W          int64  `boil:"thumb960_w" json:"thumb960_w" toml:"thumb960_w" yaml:"thumb960_w"`
-	Thumb960H          int64  `boil:"thumb960_h" json:"thumb960_h" toml:"thumb960_h" yaml:"thumb960_h"`
-	Thumb1024          string `boil:"thumb1024" json:"thumb1024" toml:"thumb1024" yaml:"thumb1024"`
-	Thumb1024W         int64  `boil:"thumb1024_w" json:"thumb1024_w" toml:"thumb1024_w" yaml:"thumb1024_w"`
-	Thumb1024H         int64  `boil:"thumb1024_h" json:"thumb1024_h" toml:"thumb1024_h" yaml:"thumb1024_h"`
-	Permalink          string `boil:"permalink" json:"permalink" toml:"permalink" yaml:"permalink"`
-	PermalinkPublic    string `boil:"permalink_public" json:"permalink_public" toml:"permalink_public" yaml:"permalink_public"`
-	EditLink           string `boil:"edit_link" json:"edit_link" toml:"edit_link" yaml:"edit_link"`
-	Preview            string `boil:"preview" json:"preview" toml:"preview" yaml:"preview"`
-	PreviewHighlight   string `boil:"preview_highlight" json:"preview_highlight" toml:"preview_highlight" yaml:"preview_highlight"`
-	Lines              int64  `boil:"lines" json:"lines" toml:"lines" yaml:"lines"`
-	LinesMore          int64  `boil:"lines_more" json:"lines_more" toml:"lines_more" yaml:"lines_more"`
-	IsPublic           bool   `boil:"is_public" json:"is_public" toml:"is_public" yaml:"is_public"`
-	PublicURLShared    bool   `boil:"public_url_shared" json:"public_url_shared" toml:"public_url_shared" yaml:"public_url_shared"`
-	CommentsCount      int64  `boil:"comments_count" json:"comments_count" toml:"comments_count" yaml:"comments_count"`
-	NumStars           int64  `boil:"num_stars" json:"num_stars" toml:"num_stars" yaml:"num_stars"`
-	IsStarred          bool   `boil:"is_starred" json:"is_starred" toml:"is_starred" yaml:"is_starred"`
+	ID                 string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name               string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Title              string    `boil:"title" json:"title" toml:"title" yaml:"title"`
+	Mimetype           string    `boil:"mimetype" json:"mimetype" toml:"mimetype" yaml:"mimetype"`
+	ImageExifRotation  int64     `boil:"image_exif_rotation" json:"image_exif_rotation" toml:"image_exif_rotation" yaml:"image_exif_rotation"`
+	Filetype           string    `boil:"filetype" json:"filetype" toml:"filetype" yaml:"filetype"`
+	PrettyType         string    `boil:"pretty_type" json:"pretty_type" toml:"pretty_type" yaml:"pretty_type"`
+	User               string    `boil:"user" json:"user" toml:"user" yaml:"user"`
+	Mode               string    `boil:"mode" json:"mode" toml:"mode" yaml:"mode"`
+	Editable           bool      `boil:"editable" json:"editable" toml:"editable" yaml:"editable"`
+	IsExternal         bool      `boil:"is_external" json:"is_external" toml:"is_external" yaml:"is_external"`
+	ExternalType       string    `boil:"external_type" json:"external_type" toml:"external_type" yaml:"external_type"`
+	Size               int64     `boil:"size" json:"size" toml:"size" yaml:"size"`
+	URLPrivate         string    `boil:"url_private" json:"url_private" toml:"url_private" yaml:"url_private"`
+	URLPrivateDownload string    `boil:"url_private_download" json:"url_private_download" toml:"url_private_download" yaml:"url_private_download"`
+	OriginalH          int64     `boil:"original_h" json:"original_h" toml:"original_h" yaml:"original_h"`
+	OriginalW          int64     `boil:"original_w" json:"original_w" toml:"original_w" yaml:"original_w"`
+	Thumb64            string    `boil:"thumb64" json:"thumb64" toml:"thumb64" yaml:"thumb64"`
+	Thumb80            string    `boil:"thumb80" json:"thumb80" toml:"thumb80" yaml:"thumb80"`
+	Thumb160           string    `boil:"thumb160" json:"thumb160" toml:"thumb160" yaml:"thumb160"`
+	Thumb360           string    `boil:"thumb360" json:"thumb360" toml:"thumb360" yaml:"thumb360"`
+	Thumb360Gif        string    `boil:"thumb360_gif" json:"thumb360_gif" toml:"thumb360_gif" yaml:"thumb360_gif"`
+	Thumb360W          int64     `boil:"thumb360_w" json:"thumb360_w" toml:"thumb360_w" yaml:"thumb360_w"`
+	Thumb360H          int64     `boil:"thumb360_h" json:"thumb360_h" toml:"thumb360_h" yaml:"thumb360_h"`
+	Thumb480           string    `boil:"thumb480" json:"thumb480" toml:"thumb480" yaml:"thumb480"`
+	Thumb480W          int64     `boil:"thumb480_w" json:"thumb480_w" toml:"thumb480_w" yaml:"thumb480_w"`
+	Thumb480H          int64     `boil:"thumb480_h" json:"thumb480_h" toml:"thumb480_h" yaml:"thumb480_h"`
+	Thumb720           string    `boil:"thumb720" json:"thumb720" toml:"thumb720" yaml:"thumb720"`
+	Thumb720W          int64     `boil:"thumb720_w" json:"thumb720_w" toml:"thumb720_w" yaml:"thumb720_w"`
+	Thumb720H          int64     `boil:"thumb720_h" json:"thumb720_h" toml:"thumb720_h" yaml:"thumb720_h"`
+	Thumb960           string    `boil:"thumb960" json:"thumb960" toml:"thumb960" yaml:"thumb960"`
+	Thumb960W          int64     `boil:"thumb960_w" json:"thumb960_w" toml:"thumb960_w" yaml:"thumb960_w"`
+	Thumb960H          int64     `boil:"thumb960_h" json:"thumb960_h" toml:"thumb960_h" yaml:"thumb960_h"`
+	Thumb1024          string    `boil:"thumb1024" json:"thumb1024" toml:"thumb1024" yaml:"thumb1024"`
+	Thumb1024W         int64     `boil:"thumb1024_w" json:"thumb1024_w" toml:"thumb1024_w" yaml:"thumb1024_w"`
+	Thumb1024H         int64     `boil:"thumb1024_h" json:"thumb1024_h" toml:"thumb1024_h" yaml:"thumb1024_h"`
+	Permalink          string    `boil:"permalink" json:"permalink" toml:"permalink" yaml:"permalink"`
+	PermalinkPublic    string    `boil:"permalink_public" json:"permalink_public" toml:"permalink_public" yaml:"permalink_public"`
+	EditLink           string    `boil:"edit_link" json:"edit_link" toml:"edit_link" yaml:"edit_link"`
+	Preview            string    `boil:"preview" json:"preview" toml:"preview" yaml:"preview"`
+	PreviewHighlight   string    `boil:"preview_highlight" json:"preview_highlight" toml:"preview_highlight" yaml:"preview_highlight"`
+	Lines              int64     `boil:"lines" json:"lines" toml:"lines" yaml:"lines"`
+	LinesMore          int64     `boil:"lines_more" json:"lines_more" toml:"lines_more" yaml:"lines_more"`
+	IsPublic           bool      `boil:"is_public" json:"is_public" toml:"is_public" yaml:"is_public"`
+	PublicURLShared    bool      `boil:"public_url_shared" json:"public_url_shared" toml:"public_url_shared" yaml:"public_url_shared"`
+	CommentsCount      int64     `boil:"comments_count" json:"comments_count" toml:"comments_count" yaml:"comments_count"`
+	NumStars           int64     `boil:"num_stars" json:"num_stars" toml:"num_stars" yaml:"num_stars"`
+	IsStarred          bool      `boil:"is_starred" json:"is_starred" toml:"is_starred" yaml:"is_starred"`
+	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	R *fileR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L fileL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -124,6 +125,7 @@ var FileColumns = struct {
 	CommentsCount      string
 	NumStars           string
 	IsStarred          string
+	CreatedAt          string
 }{
 	ID:                 "id",
 	Name:               "name",
@@ -173,6 +175,7 @@ var FileColumns = struct {
 	CommentsCount:      "comments_count",
 	NumStars:           "num_stars",
 	IsStarred:          "is_starred",
+	CreatedAt:          "created_at",
 }
 
 // Generated where
@@ -226,6 +229,7 @@ var FileWhere = struct {
 	CommentsCount      whereHelperint64
 	NumStars           whereHelperint64
 	IsStarred          whereHelperbool
+	CreatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "\"file\".\"id\""},
 	Name:               whereHelperstring{field: "\"file\".\"name\""},
@@ -275,6 +279,7 @@ var FileWhere = struct {
 	CommentsCount:      whereHelperint64{field: "\"file\".\"comments_count\""},
 	NumStars:           whereHelperint64{field: "\"file\".\"num_stars\""},
 	IsStarred:          whereHelperbool{field: "\"file\".\"is_starred\""},
+	CreatedAt:          whereHelpertime_Time{field: "\"file\".\"created_at\""},
 }
 
 // FileRels is where relationship names are stored.
@@ -294,8 +299,8 @@ func (*fileR) NewStruct() *fileR {
 type fileL struct{}
 
 var (
-	fileAllColumns            = []string{"id", "name", "title", "mimetype", "image_exif_rotation", "filetype", "pretty_type", "user", "mode", "editable", "is_external", "external_type", "size", "url_private", "url_private_download", "original_h", "original_w", "thumb64", "thumb80", "thumb160", "thumb360", "thumb360_gif", "thumb360_w", "thumb360_h", "thumb480", "thumb480_w", "thumb480_h", "thumb720", "thumb720_w", "thumb720_h", "thumb960", "thumb960_w", "thumb960_h", "thumb1024", "thumb1024_w", "thumb1024_h", "permalink", "permalink_public", "edit_link", "preview", "preview_highlight", "lines", "lines_more", "is_public", "public_url_shared", "comments_count", "num_stars", "is_starred"}
-	fileColumnsWithoutDefault = []string{"id", "name", "title", "mimetype", "image_exif_rotation", "filetype", "pretty_type", "user", "mode", "editable", "is_external", "external_type", "size", "url_private", "url_private_download", "original_h", "original_w", "thumb64", "thumb80", "thumb160", "thumb360", "thumb360_gif", "thumb360_w", "thumb360_h", "thumb480", "thumb480_w", "thumb480_h", "thumb720", "thumb720_w", "thumb720_h", "thumb960", "thumb960_w", "thumb960_h", "thumb1024", "thumb1024_w", "thumb1024_h", "permalink", "permalink_public", "edit_link", "preview", "preview_highlight", "lines", "lines_more", "is_public", "public_url_shared", "comments_count", "num_stars", "is_starred"}
+	fileAllColumns            = []string{"id", "name", "title", "mimetype", "image_exif_rotation", "filetype", "pretty_type", "user", "mode", "editable", "is_external", "external_type", "size", "url_private", "url_private_download", "original_h", "original_w", "thumb64", "thumb80", "thumb160", "thumb360", "thumb360_gif", "thumb360_w", "thumb360_h", "thumb480", "thumb480_w", "thumb480_h", "thumb720", "thumb720_w", "thumb720_h", "thumb960", "thumb960_w", "thumb960_h", "thumb1024", "thumb1024_w", "thumb1024_h", "permalink", "permalink_public", "edit_link", "preview", "preview_highlight", "lines", "lines_more", "is_public", "public_url_shared", "comments_count", "num_stars", "is_starred", "created_at"}
+	fileColumnsWithoutDefault = []string{"id", "name", "title", "mimetype", "image_exif_rotation", "filetype", "pretty_type", "user", "mode", "editable", "is_external", "external_type", "size", "url_private", "url_private_download", "original_h", "original_w", "thumb64", "thumb80", "thumb160", "thumb360", "thumb360_gif", "thumb360_w", "thumb360_h", "thumb480", "thumb480_w", "thumb480_h", "thumb720", "thumb720_w", "thumb720_h", "thumb960", "thumb960_w", "thumb960_h", "thumb1024", "thumb1024_w", "thumb1024_h", "permalink", "permalink_public", "edit_link", "preview", "preview_highlight", "lines", "lines_more", "is_public", "public_url_shared", "comments_count", "num_stars", "is_starred", "created_at"}
 	fileColumnsWithDefault    = []string{}
 	filePrimaryKeyColumns     = []string{"id"}
 )
@@ -615,6 +620,13 @@ func (o *File) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err

@@ -214,6 +214,8 @@ CREATE TABLE file (
   is_starred BOOLEAN NOT NULL,
   -- shares
 
+  created_at DATETIME NOT NULL,
+
   PRIMARY KEY(id)
 );
 
