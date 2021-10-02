@@ -31,17 +31,17 @@ type User struct {
 	TZ                string    `boil:"tz" json:"tz" toml:"tz" yaml:"tz"`
 	TZLabel           string    `boil:"tz_label" json:"tz_label" toml:"tz_label" yaml:"tz_label"`
 	TZOffset          int64     `boil:"tz_offset" json:"tz_offset" toml:"tz_offset" yaml:"tz_offset"`
-	IsBot             string    `boil:"is_bot" json:"is_bot" toml:"is_bot" yaml:"is_bot"`
-	IsAdmin           string    `boil:"is_admin" json:"is_admin" toml:"is_admin" yaml:"is_admin"`
-	IsOwner           string    `boil:"is_owner" json:"is_owner" toml:"is_owner" yaml:"is_owner"`
-	IsPrimaryOwner    string    `boil:"is_primary_owner" json:"is_primary_owner" toml:"is_primary_owner" yaml:"is_primary_owner"`
-	IsRestricted      string    `boil:"is_restricted" json:"is_restricted" toml:"is_restricted" yaml:"is_restricted"`
-	IsUltraRestricted string    `boil:"is_ultra_restricted" json:"is_ultra_restricted" toml:"is_ultra_restricted" yaml:"is_ultra_restricted"`
-	IsStranger        string    `boil:"is_stranger" json:"is_stranger" toml:"is_stranger" yaml:"is_stranger"`
-	IsAppUser         string    `boil:"is_app_user" json:"is_app_user" toml:"is_app_user" yaml:"is_app_user"`
-	IsInvitedUser     string    `boil:"is_invited_user" json:"is_invited_user" toml:"is_invited_user" yaml:"is_invited_user"`
-	Has2fa            string    `boil:"has_2fa" json:"has_2fa" toml:"has_2fa" yaml:"has_2fa"`
-	HasFiles          string    `boil:"has_files" json:"has_files" toml:"has_files" yaml:"has_files"`
+	IsBot             bool      `boil:"is_bot" json:"is_bot" toml:"is_bot" yaml:"is_bot"`
+	IsAdmin           bool      `boil:"is_admin" json:"is_admin" toml:"is_admin" yaml:"is_admin"`
+	IsOwner           bool      `boil:"is_owner" json:"is_owner" toml:"is_owner" yaml:"is_owner"`
+	IsPrimaryOwner    bool      `boil:"is_primary_owner" json:"is_primary_owner" toml:"is_primary_owner" yaml:"is_primary_owner"`
+	IsRestricted      bool      `boil:"is_restricted" json:"is_restricted" toml:"is_restricted" yaml:"is_restricted"`
+	IsUltraRestricted bool      `boil:"is_ultra_restricted" json:"is_ultra_restricted" toml:"is_ultra_restricted" yaml:"is_ultra_restricted"`
+	IsStranger        bool      `boil:"is_stranger" json:"is_stranger" toml:"is_stranger" yaml:"is_stranger"`
+	IsAppUser         bool      `boil:"is_app_user" json:"is_app_user" toml:"is_app_user" yaml:"is_app_user"`
+	IsInvitedUser     bool      `boil:"is_invited_user" json:"is_invited_user" toml:"is_invited_user" yaml:"is_invited_user"`
+	Has2fa            bool      `boil:"has_2fa" json:"has_2fa" toml:"has_2fa" yaml:"has_2fa"`
+	HasFiles          bool      `boil:"has_files" json:"has_files" toml:"has_files" yaml:"has_files"`
 	Presence          string    `boil:"presence" json:"presence" toml:"presence" yaml:"presence"`
 	Locale            string    `boil:"locale" json:"locale" toml:"locale" yaml:"locale"`
 	CreatedAt         time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
@@ -115,17 +115,17 @@ var UserWhere = struct {
 	TZ                whereHelperstring
 	TZLabel           whereHelperstring
 	TZOffset          whereHelperint64
-	IsBot             whereHelperstring
-	IsAdmin           whereHelperstring
-	IsOwner           whereHelperstring
-	IsPrimaryOwner    whereHelperstring
-	IsRestricted      whereHelperstring
-	IsUltraRestricted whereHelperstring
-	IsStranger        whereHelperstring
-	IsAppUser         whereHelperstring
-	IsInvitedUser     whereHelperstring
-	Has2fa            whereHelperstring
-	HasFiles          whereHelperstring
+	IsBot             whereHelperbool
+	IsAdmin           whereHelperbool
+	IsOwner           whereHelperbool
+	IsPrimaryOwner    whereHelperbool
+	IsRestricted      whereHelperbool
+	IsUltraRestricted whereHelperbool
+	IsStranger        whereHelperbool
+	IsAppUser         whereHelperbool
+	IsInvitedUser     whereHelperbool
+	Has2fa            whereHelperbool
+	HasFiles          whereHelperbool
 	Presence          whereHelperstring
 	Locale            whereHelperstring
 	CreatedAt         whereHelpertime_Time
@@ -140,17 +140,17 @@ var UserWhere = struct {
 	TZ:                whereHelperstring{field: "\"user\".\"tz\""},
 	TZLabel:           whereHelperstring{field: "\"user\".\"tz_label\""},
 	TZOffset:          whereHelperint64{field: "\"user\".\"tz_offset\""},
-	IsBot:             whereHelperstring{field: "\"user\".\"is_bot\""},
-	IsAdmin:           whereHelperstring{field: "\"user\".\"is_admin\""},
-	IsOwner:           whereHelperstring{field: "\"user\".\"is_owner\""},
-	IsPrimaryOwner:    whereHelperstring{field: "\"user\".\"is_primary_owner\""},
-	IsRestricted:      whereHelperstring{field: "\"user\".\"is_restricted\""},
-	IsUltraRestricted: whereHelperstring{field: "\"user\".\"is_ultra_restricted\""},
-	IsStranger:        whereHelperstring{field: "\"user\".\"is_stranger\""},
-	IsAppUser:         whereHelperstring{field: "\"user\".\"is_app_user\""},
-	IsInvitedUser:     whereHelperstring{field: "\"user\".\"is_invited_user\""},
-	Has2fa:            whereHelperstring{field: "\"user\".\"has_2fa\""},
-	HasFiles:          whereHelperstring{field: "\"user\".\"has_files\""},
+	IsBot:             whereHelperbool{field: "\"user\".\"is_bot\""},
+	IsAdmin:           whereHelperbool{field: "\"user\".\"is_admin\""},
+	IsOwner:           whereHelperbool{field: "\"user\".\"is_owner\""},
+	IsPrimaryOwner:    whereHelperbool{field: "\"user\".\"is_primary_owner\""},
+	IsRestricted:      whereHelperbool{field: "\"user\".\"is_restricted\""},
+	IsUltraRestricted: whereHelperbool{field: "\"user\".\"is_ultra_restricted\""},
+	IsStranger:        whereHelperbool{field: "\"user\".\"is_stranger\""},
+	IsAppUser:         whereHelperbool{field: "\"user\".\"is_app_user\""},
+	IsInvitedUser:     whereHelperbool{field: "\"user\".\"is_invited_user\""},
+	Has2fa:            whereHelperbool{field: "\"user\".\"has_2fa\""},
+	HasFiles:          whereHelperbool{field: "\"user\".\"has_files\""},
 	Presence:          whereHelperstring{field: "\"user\".\"presence\""},
 	Locale:            whereHelperstring{field: "\"user\".\"locale\""},
 	CreatedAt:         whereHelpertime_Time{field: "\"user\".\"created_at\""},

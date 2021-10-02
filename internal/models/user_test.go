@@ -568,7 +568,7 @@ func testUsersSelect(t *testing.T) {
 }
 
 var (
-	userDBTypes = map[string]string{`ID`: `STRING`, `TeamID`: `STRING`, `Name`: `STRING`, `Deleted`: `BOOLEAN`, `Color`: `STRING`, `RealName`: `STRING`, `TZ`: `STRING`, `TZLabel`: `STRING`, `TZOffset`: `INTEGER`, `IsBot`: `BOOL`, `IsAdmin`: `BOOL`, `IsOwner`: `BOOL`, `IsPrimaryOwner`: `BOOL`, `IsRestricted`: `BOOL`, `IsUltraRestricted`: `BOOL`, `IsStranger`: `BOOL`, `IsAppUser`: `BOOL`, `IsInvitedUser`: `BOOL`, `Has2fa`: `BOOL`, `HasFiles`: `BOOL`, `Presence`: `STRING`, `Locale`: `STRING`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
+	userDBTypes = map[string]string{`ID`: `STRING`, `TeamID`: `STRING`, `Name`: `STRING`, `Deleted`: `BOOLEAN`, `Color`: `STRING`, `RealName`: `STRING`, `TZ`: `STRING`, `TZLabel`: `STRING`, `TZOffset`: `INT`, `IsBot`: `BOOLEAN`, `IsAdmin`: `BOOLEAN`, `IsOwner`: `BOOLEAN`, `IsPrimaryOwner`: `BOOLEAN`, `IsRestricted`: `BOOLEAN`, `IsUltraRestricted`: `BOOLEAN`, `IsStranger`: `BOOLEAN`, `IsAppUser`: `BOOLEAN`, `IsInvitedUser`: `BOOLEAN`, `Has2fa`: `BOOLEAN`, `HasFiles`: `BOOLEAN`, `Presence`: `STRING`, `Locale`: `STRING`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
 	_           = bytes.MinRead
 )
 

@@ -123,6 +123,25 @@ func upsertUser(ctx context.Context, tx boil.ContextTransactor, user slack.User)
 	u.Deleted = user.Deleted
 	u.Color = user.Color
 	u.RealName = user.RealName
+	u.TZ = user.TZ
+	u.TZLabel = user.TZLabel
+	u.TZOffset = int64(user.TZOffset)
+	// u.Profile
+	u.IsBot = user.IsBot
+	u.IsAdmin = user.IsAdmin
+	u.IsOwner = user.IsOwner
+	u.IsPrimaryOwner = user.IsPrimaryOwner
+	u.IsRestricted = user.IsRestricted
+	u.IsUltraRestricted = user.IsUltraRestricted
+	u.IsStranger = user.IsStranger
+	u.IsAppUser = user.IsAppUser
+	u.IsInvitedUser = user.IsInvitedUser
+	u.Has2fa = user.Has2FA
+	u.HasFiles = user.HasFiles
+	u.Presence = user.Presence
+	u.Locale = user.Locale
+	// user.Updated
+	// user.Enterprise
 
 	if err == sql.ErrNoRows {
 		err = u.Insert(ctx, tx, boil.Infer())

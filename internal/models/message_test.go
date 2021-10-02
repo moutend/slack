@@ -568,7 +568,7 @@ func testMessagesSelect(t *testing.T) {
 }
 
 var (
-	messageDBTypes = map[string]string{`Type`: `STRING`, `Channel`: `STRING`, `User`: `STRING`, `Text`: `STRING`, `Timestamp`: `STRING`, `ThreadTimestamp`: `STRING`, `IsStarred`: `BOOLEAN`, `LastRead`: `STRING`, `Subscribed`: `BOOLEAN`, `UnreadCount`: `INTEGER`, `SubType`: `STRING`, `Hidden`: `BOOLEAN`, `DeletedTimestamp`: `STRING`, `EventTimestamp`: `STRING`, `BotID`: `STRING`, `Name`: `STRING`, `ReplyCount`: `INTEGER`, `CreatedAt`: `DATETIME`}
+	messageDBTypes = map[string]string{`Type`: `STRING`, `Channel`: `STRING`, `User`: `STRING`, `Text`: `STRING`, `Timestamp`: `STRING`, `ThreadTimestamp`: `STRING`, `IsStarred`: `BOOLEAN`, `LastRead`: `STRING`, `Subscribed`: `BOOLEAN`, `UnreadCount`: `INT`, `SubType`: `STRING`, `Hidden`: `BOOLEAN`, `DeletedTimestamp`: `STRING`, `EventTimestamp`: `STRING`, `BotID`: `STRING`, `Name`: `STRING`, `ReplyCount`: `INT`, `CreatedAt`: `DATETIME`}
 	_              = bytes.MinRead
 )
 
