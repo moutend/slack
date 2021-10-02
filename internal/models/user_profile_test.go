@@ -149,7 +149,7 @@ func testUserProfilesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := UserProfileExists(ctx, tx, o.DisplayNameNormalized)
+	e, err := UserProfileExists(ctx, tx, o.UserID)
 	if err != nil {
 		t.Errorf("Unable to check if UserProfile exists: %s", err)
 	}
@@ -175,7 +175,7 @@ func testUserProfilesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	userProfileFound, err := FindUserProfile(ctx, tx, o.DisplayNameNormalized)
+	userProfileFound, err := FindUserProfile(ctx, tx, o.UserID)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,7 +568,7 @@ func testUserProfilesSelect(t *testing.T) {
 }
 
 var (
-	userProfileDBTypes = map[string]string{`FirstName`: `TEXT`, `LastName`: `TEXT`, `RealName`: `TEXT`, `RealNameNormalized`: `TEXT`, `DisplayName`: `TEXT`, `DisplayNameNormalized`: `TEXT`, `Email`: `TEXT`, `Skype`: `TEXT`, `Phone`: `TEXT`, `Image24`: `TEXT`, `Image32`: `TEXT`, `Image48`: `TEXT`, `Image72`: `TEXT`, `Image192`: `TEXT`, `Image512`: `TEXT`, `ImageOriginal`: `TEXT`, `Title`: `TEXT`, `BotID`: `TEXT`, `APIAppID`: `TEXT`, `StatusText`: `TEXT`, `StatusEmoji`: `TEXT`, `StatusExpiration`: `INTEGER`, `Team`: `TEXT`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
+	userProfileDBTypes = map[string]string{`UserID`: `TEXT`, `FirstName`: `TEXT`, `LastName`: `TEXT`, `RealName`: `TEXT`, `RealNameNormalized`: `TEXT`, `DisplayName`: `TEXT`, `DisplayNameNormalized`: `TEXT`, `Email`: `TEXT`, `Skype`: `TEXT`, `Phone`: `TEXT`, `Image24`: `TEXT`, `Image32`: `TEXT`, `Image48`: `TEXT`, `Image72`: `TEXT`, `Image192`: `TEXT`, `Image512`: `TEXT`, `ImageOriginal`: `TEXT`, `Title`: `TEXT`, `BotID`: `TEXT`, `APIAppID`: `TEXT`, `StatusText`: `TEXT`, `StatusEmoji`: `TEXT`, `StatusExpiration`: `INTEGER`, `Team`: `TEXT`, `CreatedAt`: `DATETIME`, `UpdatedAt`: `DATETIME`}
 	_                  = bytes.MinRead
 )
 

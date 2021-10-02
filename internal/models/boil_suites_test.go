@@ -13,77 +13,99 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("Channels", testChannels)
+	t.Run("Files", testFiles)
 	t.Run("Messages", testMessages)
+	t.Run("RelMessageFiles", testRelMessageFiles)
 	t.Run("Users", testUsers)
 	t.Run("UserProfiles", testUserProfiles)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("Channels", testChannelsDelete)
+	t.Run("Files", testFilesDelete)
 	t.Run("Messages", testMessagesDelete)
+	t.Run("RelMessageFiles", testRelMessageFilesDelete)
 	t.Run("Users", testUsersDelete)
 	t.Run("UserProfiles", testUserProfilesDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Channels", testChannelsQueryDeleteAll)
+	t.Run("Files", testFilesQueryDeleteAll)
 	t.Run("Messages", testMessagesQueryDeleteAll)
+	t.Run("RelMessageFiles", testRelMessageFilesQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 	t.Run("UserProfiles", testUserProfilesQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Channels", testChannelsSliceDeleteAll)
+	t.Run("Files", testFilesSliceDeleteAll)
 	t.Run("Messages", testMessagesSliceDeleteAll)
+	t.Run("RelMessageFiles", testRelMessageFilesSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 	t.Run("UserProfiles", testUserProfilesSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
 	t.Run("Channels", testChannelsExists)
+	t.Run("Files", testFilesExists)
 	t.Run("Messages", testMessagesExists)
+	t.Run("RelMessageFiles", testRelMessageFilesExists)
 	t.Run("Users", testUsersExists)
 	t.Run("UserProfiles", testUserProfilesExists)
 }
 
 func TestFind(t *testing.T) {
 	t.Run("Channels", testChannelsFind)
+	t.Run("Files", testFilesFind)
 	t.Run("Messages", testMessagesFind)
+	t.Run("RelMessageFiles", testRelMessageFilesFind)
 	t.Run("Users", testUsersFind)
 	t.Run("UserProfiles", testUserProfilesFind)
 }
 
 func TestBind(t *testing.T) {
 	t.Run("Channels", testChannelsBind)
+	t.Run("Files", testFilesBind)
 	t.Run("Messages", testMessagesBind)
+	t.Run("RelMessageFiles", testRelMessageFilesBind)
 	t.Run("Users", testUsersBind)
 	t.Run("UserProfiles", testUserProfilesBind)
 }
 
 func TestOne(t *testing.T) {
 	t.Run("Channels", testChannelsOne)
+	t.Run("Files", testFilesOne)
 	t.Run("Messages", testMessagesOne)
+	t.Run("RelMessageFiles", testRelMessageFilesOne)
 	t.Run("Users", testUsersOne)
 	t.Run("UserProfiles", testUserProfilesOne)
 }
 
 func TestAll(t *testing.T) {
 	t.Run("Channels", testChannelsAll)
+	t.Run("Files", testFilesAll)
 	t.Run("Messages", testMessagesAll)
+	t.Run("RelMessageFiles", testRelMessageFilesAll)
 	t.Run("Users", testUsersAll)
 	t.Run("UserProfiles", testUserProfilesAll)
 }
 
 func TestCount(t *testing.T) {
 	t.Run("Channels", testChannelsCount)
+	t.Run("Files", testFilesCount)
 	t.Run("Messages", testMessagesCount)
+	t.Run("RelMessageFiles", testRelMessageFilesCount)
 	t.Run("Users", testUsersCount)
 	t.Run("UserProfiles", testUserProfilesCount)
 }
 
 func TestHooks(t *testing.T) {
 	t.Run("Channels", testChannelsHooks)
+	t.Run("Files", testFilesHooks)
 	t.Run("Messages", testMessagesHooks)
+	t.Run("RelMessageFiles", testRelMessageFilesHooks)
 	t.Run("Users", testUsersHooks)
 	t.Run("UserProfiles", testUserProfilesHooks)
 }
@@ -91,8 +113,12 @@ func TestHooks(t *testing.T) {
 func TestInsert(t *testing.T) {
 	t.Run("Channels", testChannelsInsert)
 	t.Run("Channels", testChannelsInsertWhitelist)
+	t.Run("Files", testFilesInsert)
+	t.Run("Files", testFilesInsertWhitelist)
 	t.Run("Messages", testMessagesInsert)
 	t.Run("Messages", testMessagesInsertWhitelist)
+	t.Run("RelMessageFiles", testRelMessageFilesInsert)
+	t.Run("RelMessageFiles", testRelMessageFilesInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 	t.Run("UserProfiles", testUserProfilesInsert)
@@ -141,35 +167,45 @@ func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
 	t.Run("Channels", testChannelsReload)
+	t.Run("Files", testFilesReload)
 	t.Run("Messages", testMessagesReload)
+	t.Run("RelMessageFiles", testRelMessageFilesReload)
 	t.Run("Users", testUsersReload)
 	t.Run("UserProfiles", testUserProfilesReload)
 }
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Channels", testChannelsReloadAll)
+	t.Run("Files", testFilesReloadAll)
 	t.Run("Messages", testMessagesReloadAll)
+	t.Run("RelMessageFiles", testRelMessageFilesReloadAll)
 	t.Run("Users", testUsersReloadAll)
 	t.Run("UserProfiles", testUserProfilesReloadAll)
 }
 
 func TestSelect(t *testing.T) {
 	t.Run("Channels", testChannelsSelect)
+	t.Run("Files", testFilesSelect)
 	t.Run("Messages", testMessagesSelect)
+	t.Run("RelMessageFiles", testRelMessageFilesSelect)
 	t.Run("Users", testUsersSelect)
 	t.Run("UserProfiles", testUserProfilesSelect)
 }
 
 func TestUpdate(t *testing.T) {
 	t.Run("Channels", testChannelsUpdate)
+	t.Run("Files", testFilesUpdate)
 	t.Run("Messages", testMessagesUpdate)
+	t.Run("RelMessageFiles", testRelMessageFilesUpdate)
 	t.Run("Users", testUsersUpdate)
 	t.Run("UserProfiles", testUserProfilesUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Channels", testChannelsSliceUpdateAll)
+	t.Run("Files", testFilesSliceUpdateAll)
 	t.Run("Messages", testMessagesSliceUpdateAll)
+	t.Run("RelMessageFiles", testRelMessageFilesSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 	t.Run("UserProfiles", testUserProfilesSliceUpdateAll)
 }

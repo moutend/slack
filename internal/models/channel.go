@@ -38,6 +38,7 @@ type Channel struct {
 	Unlinked           int64     `boil:"unlinked" json:"unlinked" toml:"unlinked" yaml:"unlinked"`
 	NameNormalized     string    `boil:"name_normalized" json:"name_normalized" toml:"name_normalized" yaml:"name_normalized"`
 	NumMembers         int64     `boil:"num_members" json:"num_members" toml:"num_members" yaml:"num_members"`
+	Priority           float64   `boil:"priority" json:"priority" toml:"priority" yaml:"priority"`
 	User               string    `boil:"user" json:"user" toml:"user" yaml:"user"`
 	Name               string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	Creator            string    `boil:"creator" json:"creator" toml:"creator" yaml:"creator"`
@@ -71,6 +72,7 @@ var ChannelColumns = struct {
 	Unlinked           string
 	NameNormalized     string
 	NumMembers         string
+	Priority           string
 	User               string
 	Name               string
 	Creator            string
@@ -99,6 +101,7 @@ var ChannelColumns = struct {
 	Unlinked:           "unlinked",
 	NameNormalized:     "name_normalized",
 	NumMembers:         "num_members",
+	Priority:           "priority",
 	User:               "user",
 	Name:               "name",
 	Creator:            "creator",
@@ -169,6 +172,35 @@ func (w whereHelperint64) NIN(slice []int64) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
+type whereHelperfloat64 struct{ field string }
+
+func (w whereHelperfloat64) EQ(x float64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperfloat64) NEQ(x float64) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperfloat64) LT(x float64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperfloat64) LTE(x float64) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperfloat64) GT(x float64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperfloat64) GTE(x float64) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelperfloat64) IN(slice []float64) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperfloat64) NIN(slice []float64) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 type whereHelpertime_Time struct{ field string }
 
 func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
@@ -207,6 +239,7 @@ var ChannelWhere = struct {
 	Unlinked           whereHelperint64
 	NameNormalized     whereHelperstring
 	NumMembers         whereHelperint64
+	Priority           whereHelperfloat64
 	User               whereHelperstring
 	Name               whereHelperstring
 	Creator            whereHelperstring
@@ -235,6 +268,7 @@ var ChannelWhere = struct {
 	Unlinked:           whereHelperint64{field: "\"channel\".\"unlinked\""},
 	NameNormalized:     whereHelperstring{field: "\"channel\".\"name_normalized\""},
 	NumMembers:         whereHelperint64{field: "\"channel\".\"num_members\""},
+	Priority:           whereHelperfloat64{field: "\"channel\".\"priority\""},
 	User:               whereHelperstring{field: "\"channel\".\"user\""},
 	Name:               whereHelperstring{field: "\"channel\".\"name\""},
 	Creator:            whereHelperstring{field: "\"channel\".\"creator\""},
@@ -265,8 +299,8 @@ func (*channelR) NewStruct() *channelR {
 type channelL struct{}
 
 var (
-	channelAllColumns            = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at"}
-	channelColumnsWithoutDefault = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at"}
+	channelAllColumns            = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "priority", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at"}
+	channelColumnsWithoutDefault = []string{"id", "is_open", "last_read", "unread_count", "unread_count_display", "is_group", "is_shared", "is_im", "is_ext_shared", "is_org_shared", "is_pending_ext_shared", "is_private", "is_mpim", "unlinked", "name_normalized", "num_members", "priority", "user", "name", "creator", "is_archived", "topic", "purpose", "is_channel", "is_general", "is_member", "locale", "created_at"}
 	channelColumnsWithDefault    = []string{}
 	channelPrimaryKeyColumns     = []string{"id"}
 )

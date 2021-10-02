@@ -1,6 +1,8 @@
 PRAGMA ENCODING="UTF-8";
 
 CREATE TABLE user_profile (
+  user_id TEXT NOT NULL, -- not exists in API response
+
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   real_name TEXT NOT NULL,
@@ -28,7 +30,7 @@ CREATE TABLE user_profile (
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
 
-  PRIMARY KEY(display_name_normalized)
+  PRIMARY KEY(user_id)
 );
 
 CREATE TABLE user (
@@ -84,7 +86,7 @@ CREATE TABLE channel (
   unlinked INTEGER NOT NULL,
   name_normalized TEXT NOT NULL,
   num_members INTEGER NOT NULL,
-  -- priority DOUBLE NOT NULL,
+  priority REAL NOT NULL,
   user TEXT NOT NULL,
 
   -- GroupConversation fields
@@ -153,4 +155,71 @@ CREATE TABLE message (
   created_at DATETIME NOT NULL,
 
   PRIMARY KEY (`timestamp`)
+);
+
+CREATE TABLE file (
+  id TEXT NOT NULL,
+  -- created
+  -- timestamp
+  name TEXT NOT NULL,
+  title TEXT NOT NULL,
+  mimetype TEXT NOT NULL,
+  image_exif_rotation INTEGER NOT NULL,
+  filetype TEXT NOT NULL,
+  pretty_type TEXT NOT NULL,
+  user TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  editable BOOLEAN NOT NULL,
+  is_external BOOLEAN NOT NULL,
+  external_type TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  url_private TEXT NOT NULL,
+  url_private_download TEXT NOT NULL,
+  original_h INTEGER NOT NULL,
+  original_w INTEGER NOT NULL,
+  thumb64 TEXT NOT NULL,
+  thumb80 TEXT NOT NULL,
+  thumb160 TEXT NOT NULL,
+  thumb360 TEXT NOT NULL,
+  thumb360_gif TEXT NOT NULL,
+  thumb360_w INTEGER NOT NULL,
+  thumb360_h INTEGER NOT NULL,
+  thumb480 TEXT NOT NULL,
+  thumb480_w INTEGER NOT NULL,
+  thumb480_h INTEGER NOT NULL,
+  thumb720 TEXT NOT NULL,
+  thumb720_w INTEGER NOT NULL,
+  thumb720_h INTEGER NOT NULL,
+  thumb960 TEXT NOT NULL,
+  thumb960_w INTEGER NOT NULL,
+  thumb960_h INTEGER NOT NULL,
+  thumb1024 TEXT NOT NULL,
+  thumb1024_w INTEGER NOT NULL,
+  thumb1024_h INTEGER NOT NULL,
+  permalink TEXT NOT NULL,
+  permalink_public TEXT NOT NULL,
+  edit_link TEXT NOT NULL,
+  preview TEXT NOT NULL,
+  preview_highlight TEXT NOT NULL,
+  lines INTEGER NOT NULL,
+  lines_more INTEGER NOT NULL,
+  is_public BOOLEAN NOT NULL,
+  public_url_shared BOOLEAN NOT NULL,
+  -- channels
+  -- groups
+  -- ims
+  -- initial_comment
+  comments_count INTEGER NOT NULL,
+  num_stars INTEGER NOT NULL,
+  is_starred BOOLEAN NOT NULL,
+  -- shares
+
+  PRIMARY KEY(id)
+);
+
+CREATE TABLE rel_message_file (
+  file_id TEXT NOT NULL,
+  message_timestamp TEXT NOT NULL,
+
+  PRIMARY KEY(file_id, message_timestamp)
 );

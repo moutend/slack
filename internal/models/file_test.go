@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testChannels(t *testing.T) {
+func testFiles(t *testing.T) {
 	t.Parallel()
 
-	query := Channels()
+	query := Files()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testChannelsDelete(t *testing.T) {
+func testFilesDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testChannelsDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testChannelsDelete(t *testing.T) {
 	}
 }
 
-func testChannelsQueryDeleteAll(t *testing.T) {
+func testFilesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testChannelsQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := Channels().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := Files().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testChannelsQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testChannelsSliceDeleteAll(t *testing.T) {
+func testFilesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testChannelsSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := ChannelSlice{o}
+	slice := FileSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testChannelsSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testChannelsSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testChannelsExists(t *testing.T) {
+func testFilesExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testChannelsExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := ChannelExists(ctx, tx, o.ID)
+	e, err := FileExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if Channel exists: %s", err)
+		t.Errorf("Unable to check if File exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected ChannelExists to return true, but got false.")
+		t.Errorf("Expected FileExists to return true, but got false.")
 	}
 }
 
-func testChannelsFind(t *testing.T) {
+func testFilesFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testChannelsFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	channelFound, err := FindChannel(ctx, tx, o.ID)
+	fileFound, err := FindFile(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if channelFound == nil {
+	if fileFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testChannelsBind(t *testing.T) {
+func testFilesBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testChannelsBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = Channels().Bind(ctx, tx, o); err != nil {
+	if err = Files().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testChannelsOne(t *testing.T) {
+func testFilesOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testChannelsOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := Channels().One(ctx, tx); err != nil {
+	if x, err := Files().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testChannelsAll(t *testing.T) {
+func testFilesAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	channelOne := &Channel{}
-	channelTwo := &Channel{}
-	if err = randomize.Struct(seed, channelOne, channelDBTypes, false, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	fileOne := &File{}
+	fileTwo := &File{}
+	if err = randomize.Struct(seed, fileOne, fileDBTypes, false, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
-	if err = randomize.Struct(seed, channelTwo, channelDBTypes, false, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	if err = randomize.Struct(seed, fileTwo, fileDBTypes, false, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = channelOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = fileOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = channelTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = fileTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := Channels().All(ctx, tx)
+	slice, err := Files().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testChannelsAll(t *testing.T) {
 	}
 }
 
-func testChannelsCount(t *testing.T) {
+func testFilesCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	channelOne := &Channel{}
-	channelTwo := &Channel{}
-	if err = randomize.Struct(seed, channelOne, channelDBTypes, false, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	fileOne := &File{}
+	fileTwo := &File{}
+	if err = randomize.Struct(seed, fileOne, fileDBTypes, false, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
-	if err = randomize.Struct(seed, channelTwo, channelDBTypes, false, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	if err = randomize.Struct(seed, fileTwo, fileDBTypes, false, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = channelOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = fileOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = channelTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = fileTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testChannelsCount(t *testing.T) {
 	}
 }
 
-func channelBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func channelAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Channel) error {
-	*o = Channel{}
+func fileAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *File) error {
+	*o = File{}
 	return nil
 }
 
-func testChannelsHooks(t *testing.T) {
+func testFilesHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &Channel{}
-	o := &Channel{}
+	empty := &File{}
+	o := &File{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, channelDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Channel object: %s", err)
+	if err = randomize.Struct(seed, o, fileDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize File object: %s", err)
 	}
 
-	AddChannelHook(boil.BeforeInsertHook, channelBeforeInsertHook)
+	AddFileHook(boil.BeforeInsertHook, fileBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	channelBeforeInsertHooks = []ChannelHook{}
+	fileBeforeInsertHooks = []FileHook{}
 
-	AddChannelHook(boil.AfterInsertHook, channelAfterInsertHook)
+	AddFileHook(boil.AfterInsertHook, fileAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	channelAfterInsertHooks = []ChannelHook{}
+	fileAfterInsertHooks = []FileHook{}
 
-	AddChannelHook(boil.AfterSelectHook, channelAfterSelectHook)
+	AddFileHook(boil.AfterSelectHook, fileAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	channelAfterSelectHooks = []ChannelHook{}
+	fileAfterSelectHooks = []FileHook{}
 
-	AddChannelHook(boil.BeforeUpdateHook, channelBeforeUpdateHook)
+	AddFileHook(boil.BeforeUpdateHook, fileBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	channelBeforeUpdateHooks = []ChannelHook{}
+	fileBeforeUpdateHooks = []FileHook{}
 
-	AddChannelHook(boil.AfterUpdateHook, channelAfterUpdateHook)
+	AddFileHook(boil.AfterUpdateHook, fileAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	channelAfterUpdateHooks = []ChannelHook{}
+	fileAfterUpdateHooks = []FileHook{}
 
-	AddChannelHook(boil.BeforeDeleteHook, channelBeforeDeleteHook)
+	AddFileHook(boil.BeforeDeleteHook, fileBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	channelBeforeDeleteHooks = []ChannelHook{}
+	fileBeforeDeleteHooks = []FileHook{}
 
-	AddChannelHook(boil.AfterDeleteHook, channelAfterDeleteHook)
+	AddFileHook(boil.AfterDeleteHook, fileAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	channelAfterDeleteHooks = []ChannelHook{}
+	fileAfterDeleteHooks = []FileHook{}
 
-	AddChannelHook(boil.BeforeUpsertHook, channelBeforeUpsertHook)
+	AddFileHook(boil.BeforeUpsertHook, fileBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	channelBeforeUpsertHooks = []ChannelHook{}
+	fileBeforeUpsertHooks = []FileHook{}
 
-	AddChannelHook(boil.AfterUpsertHook, channelAfterUpsertHook)
+	AddFileHook(boil.AfterUpsertHook, fileAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	channelAfterUpsertHooks = []ChannelHook{}
+	fileAfterUpsertHooks = []FileHook{}
 }
 
-func testChannelsInsert(t *testing.T) {
+func testFilesInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testChannelsInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testChannelsInsert(t *testing.T) {
 	}
 }
 
-func testChannelsInsertWhitelist(t *testing.T) {
+func testFilesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(channelColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(fileColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,14 +494,14 @@ func testChannelsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testChannelsReload(t *testing.T) {
+func testFilesReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -516,14 +516,14 @@ func testChannelsReload(t *testing.T) {
 	}
 }
 
-func testChannelsReloadAll(t *testing.T) {
+func testFilesReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -533,21 +533,21 @@ func testChannelsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := ChannelSlice{o}
+	slice := FileSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testChannelsSelect(t *testing.T) {
+func testFilesSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -557,7 +557,7 @@ func testChannelsSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := Channels().All(ctx, tx)
+	slice, err := Files().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,25 +568,25 @@ func testChannelsSelect(t *testing.T) {
 }
 
 var (
-	channelDBTypes = map[string]string{`ID`: `TEXT`, `IsOpen`: `BOOLEAN`, `LastRead`: `TEXT`, `UnreadCount`: `INTEGER`, `UnreadCountDisplay`: `INTEGER`, `IsGroup`: `BOOLEAN`, `IsShared`: `BOOLEAN`, `IsIm`: `BOOLEAN`, `IsExtShared`: `BOOLEAN`, `IsOrgShared`: `BOOLEAN`, `IsPendingExtShared`: `BOOLEAN`, `IsPrivate`: `BOOLEAN`, `IsMpim`: `BOOLEAN`, `Unlinked`: `INTEGER`, `NameNormalized`: `TEXT`, `NumMembers`: `INTEGER`, `Priority`: `REAL`, `User`: `TEXT`, `Name`: `TEXT`, `Creator`: `TEXT`, `IsArchived`: `BOOLEAN`, `Topic`: `TEXT`, `Purpose`: `TEXT`, `IsChannel`: `BOOLEAN`, `IsGeneral`: `BOOLEAN`, `IsMember`: `BOOLEAN`, `Locale`: `TEXT`, `CreatedAt`: `DATETIME`}
-	_              = bytes.MinRead
+	fileDBTypes = map[string]string{`ID`: `TEXT`, `Name`: `TEXT`, `Title`: `TEXT`, `Mimetype`: `TEXT`, `ImageExifRotation`: `INTEGER`, `Filetype`: `TEXT`, `PrettyType`: `TEXT`, `User`: `TEXT`, `Mode`: `TEXT`, `Editable`: `BOOLEAN`, `IsExternal`: `BOOLEAN`, `ExternalType`: `TEXT`, `Size`: `INTEGER`, `URLPrivate`: `TEXT`, `URLPrivateDownload`: `TEXT`, `OriginalH`: `INTEGER`, `OriginalW`: `INTEGER`, `Thumb64`: `TEXT`, `Thumb80`: `TEXT`, `Thumb160`: `TEXT`, `Thumb360`: `TEXT`, `Thumb360Gif`: `TEXT`, `Thumb360W`: `INTEGER`, `Thumb360H`: `INTEGER`, `Thumb480`: `TEXT`, `Thumb480W`: `INTEGER`, `Thumb480H`: `INTEGER`, `Thumb720`: `TEXT`, `Thumb720W`: `INTEGER`, `Thumb720H`: `INTEGER`, `Thumb960`: `TEXT`, `Thumb960W`: `INTEGER`, `Thumb960H`: `INTEGER`, `Thumb1024`: `TEXT`, `Thumb1024W`: `INTEGER`, `Thumb1024H`: `INTEGER`, `Permalink`: `TEXT`, `PermalinkPublic`: `TEXT`, `EditLink`: `TEXT`, `Preview`: `TEXT`, `PreviewHighlight`: `TEXT`, `Lines`: `INTEGER`, `LinesMore`: `INTEGER`, `IsPublic`: `BOOLEAN`, `PublicURLShared`: `BOOLEAN`, `CommentsCount`: `INTEGER`, `NumStars`: `INTEGER`, `IsStarred`: `BOOLEAN`}
+	_           = bytes.MinRead
 )
 
-func testChannelsUpdate(t *testing.T) {
+func testFilesUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(channelPrimaryKeyColumns) {
+	if 0 == len(filePrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(channelAllColumns) == len(channelPrimaryKeyColumns) {
+	if len(fileAllColumns) == len(filePrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -596,7 +596,7 @@ func testChannelsUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -605,8 +605,8 @@ func testChannelsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	if err = randomize.Struct(seed, o, fileDBTypes, true, filePrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -616,18 +616,18 @@ func testChannelsUpdate(t *testing.T) {
 	}
 }
 
-func testChannelsSliceUpdateAll(t *testing.T) {
+func testFilesSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(channelAllColumns) == len(channelPrimaryKeyColumns) {
+	if len(fileAllColumns) == len(filePrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Channel{}
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	o := &File{}
+	if err = randomize.Struct(seed, o, fileDBTypes, true, fileColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -637,7 +637,7 @@ func testChannelsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Channels().Count(ctx, tx)
+	count, err := Files().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -646,18 +646,18 @@ func testChannelsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, channelDBTypes, true, channelPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Channel struct: %s", err)
+	if err = randomize.Struct(seed, o, fileDBTypes, true, filePrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize File struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(channelAllColumns, channelPrimaryKeyColumns) {
-		fields = channelAllColumns
+	if strmangle.StringSliceMatch(fileAllColumns, filePrimaryKeyColumns) {
+		fields = fileAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			channelAllColumns,
-			channelPrimaryKeyColumns,
+			fileAllColumns,
+			filePrimaryKeyColumns,
 		)
 	}
 
@@ -675,7 +675,7 @@ func testChannelsSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := ChannelSlice{o}
+	slice := FileSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {

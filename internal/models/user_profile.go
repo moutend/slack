@@ -22,6 +22,7 @@ import (
 
 // UserProfile is an object representing the database table.
 type UserProfile struct {
+	UserID                string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	FirstName             string    `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
 	LastName              string    `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
 	RealName              string    `boil:"real_name" json:"real_name" toml:"real_name" yaml:"real_name"`
@@ -53,6 +54,7 @@ type UserProfile struct {
 }
 
 var UserProfileColumns = struct {
+	UserID                string
 	FirstName             string
 	LastName              string
 	RealName              string
@@ -79,6 +81,7 @@ var UserProfileColumns = struct {
 	CreatedAt             string
 	UpdatedAt             string
 }{
+	UserID:                "user_id",
 	FirstName:             "first_name",
 	LastName:              "last_name",
 	RealName:              "real_name",
@@ -109,6 +112,7 @@ var UserProfileColumns = struct {
 // Generated where
 
 var UserProfileWhere = struct {
+	UserID                whereHelperstring
 	FirstName             whereHelperstring
 	LastName              whereHelperstring
 	RealName              whereHelperstring
@@ -135,6 +139,7 @@ var UserProfileWhere = struct {
 	CreatedAt             whereHelpertime_Time
 	UpdatedAt             whereHelpertime_Time
 }{
+	UserID:                whereHelperstring{field: "\"user_profile\".\"user_id\""},
 	FirstName:             whereHelperstring{field: "\"user_profile\".\"first_name\""},
 	LastName:              whereHelperstring{field: "\"user_profile\".\"last_name\""},
 	RealName:              whereHelperstring{field: "\"user_profile\".\"real_name\""},
@@ -179,10 +184,10 @@ func (*userProfileR) NewStruct() *userProfileR {
 type userProfileL struct{}
 
 var (
-	userProfileAllColumns            = []string{"first_name", "last_name", "real_name", "real_name_normalized", "display_name", "display_name_normalized", "email", "skype", "phone", "image24", "image32", "image48", "image72", "image192", "image512", "image_original", "title", "bot_id", "api_app_id", "status_text", "status_emoji", "status_expiration", "team", "created_at", "updated_at"}
-	userProfileColumnsWithoutDefault = []string{"first_name", "last_name", "real_name", "real_name_normalized", "display_name", "display_name_normalized", "email", "skype", "phone", "image24", "image32", "image48", "image72", "image192", "image512", "image_original", "title", "bot_id", "api_app_id", "status_text", "status_emoji", "status_expiration", "team", "created_at", "updated_at"}
+	userProfileAllColumns            = []string{"user_id", "first_name", "last_name", "real_name", "real_name_normalized", "display_name", "display_name_normalized", "email", "skype", "phone", "image24", "image32", "image48", "image72", "image192", "image512", "image_original", "title", "bot_id", "api_app_id", "status_text", "status_emoji", "status_expiration", "team", "created_at", "updated_at"}
+	userProfileColumnsWithoutDefault = []string{"user_id", "first_name", "last_name", "real_name", "real_name_normalized", "display_name", "display_name_normalized", "email", "skype", "phone", "image24", "image32", "image48", "image72", "image192", "image512", "image_original", "title", "bot_id", "api_app_id", "status_text", "status_emoji", "status_expiration", "team", "created_at", "updated_at"}
 	userProfileColumnsWithDefault    = []string{}
-	userProfilePrimaryKeyColumns     = []string{"display_name_normalized"}
+	userProfilePrimaryKeyColumns     = []string{"user_id"}
 )
 
 type (
@@ -468,7 +473,7 @@ func UserProfiles(mods ...qm.QueryMod) userProfileQuery {
 
 // FindUserProfile retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUserProfile(ctx context.Context, exec boil.ContextExecutor, displayNameNormalized string, selectCols ...string) (*UserProfile, error) {
+func FindUserProfile(ctx context.Context, exec boil.ContextExecutor, userID string, selectCols ...string) (*UserProfile, error) {
 	userProfileObj := &UserProfile{}
 
 	sel := "*"
@@ -476,10 +481,10 @@ func FindUserProfile(ctx context.Context, exec boil.ContextExecutor, displayName
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"user_profile\" where \"display_name_normalized\"=?", sel,
+		"select %s from \"user_profile\" where \"user_id\"=?", sel,
 	)
 
-	q := queries.Raw(query, displayNameNormalized)
+	q := queries.Raw(query, userID)
 
 	err := q.Bind(ctx, exec, userProfileObj)
 	if err != nil {
@@ -574,7 +579,7 @@ func (o *UserProfile) Insert(ctx context.Context, exec boil.ContextExecutor, col
 	}
 
 	identifierCols = []interface{}{
-		o.DisplayNameNormalized,
+		o.UserID,
 	}
 
 	if boil.IsDebug(ctx) {
@@ -743,7 +748,7 @@ func (o *UserProfile) Delete(ctx context.Context, exec boil.ContextExecutor) (in
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), userProfilePrimaryKeyMapping)
-	sql := "DELETE FROM \"user_profile\" WHERE \"display_name_normalized\"=?"
+	sql := "DELETE FROM \"user_profile\" WHERE \"user_id\"=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -840,7 +845,7 @@ func (o UserProfileSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *UserProfile) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindUserProfile(ctx, exec, o.DisplayNameNormalized)
+	ret, err := FindUserProfile(ctx, exec, o.UserID)
 	if err != nil {
 		return err
 	}
@@ -879,16 +884,16 @@ func (o *UserProfileSlice) ReloadAll(ctx context.Context, exec boil.ContextExecu
 }
 
 // UserProfileExists checks if the UserProfile row exists.
-func UserProfileExists(ctx context.Context, exec boil.ContextExecutor, displayNameNormalized string) (bool, error) {
+func UserProfileExists(ctx context.Context, exec boil.ContextExecutor, userID string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"user_profile\" where \"display_name_normalized\"=? limit 1)"
+	sql := "select exists(select 1 from \"user_profile\" where \"user_id\"=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, displayNameNormalized)
+		fmt.Fprintln(writer, userID)
 	}
-	row := exec.QueryRowContext(ctx, sql, displayNameNormalized)
+	row := exec.QueryRowContext(ctx, sql, userID)
 
 	err := row.Scan(&exists)
 	if err != nil {
