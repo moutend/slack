@@ -22,29 +22,29 @@ import (
 
 // RelMessageFile is an object representing the database table.
 type RelMessageFile struct {
-	FileID           string `boil:"file_id" json:"file_id" toml:"file_id" yaml:"file_id"`
 	MessageTimestamp string `boil:"message_timestamp" json:"message_timestamp" toml:"message_timestamp" yaml:"message_timestamp"`
+	FileID           string `boil:"file_id" json:"file_id" toml:"file_id" yaml:"file_id"`
 
 	R *relMessageFileR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L relMessageFileL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var RelMessageFileColumns = struct {
-	FileID           string
 	MessageTimestamp string
+	FileID           string
 }{
-	FileID:           "file_id",
 	MessageTimestamp: "message_timestamp",
+	FileID:           "file_id",
 }
 
 // Generated where
 
 var RelMessageFileWhere = struct {
-	FileID           whereHelperstring
 	MessageTimestamp whereHelperstring
+	FileID           whereHelperstring
 }{
-	FileID:           whereHelperstring{field: "\"rel_message_file\".\"file_id\""},
 	MessageTimestamp: whereHelperstring{field: "\"rel_message_file\".\"message_timestamp\""},
+	FileID:           whereHelperstring{field: "\"rel_message_file\".\"file_id\""},
 }
 
 // RelMessageFileRels is where relationship names are stored.
@@ -64,10 +64,10 @@ func (*relMessageFileR) NewStruct() *relMessageFileR {
 type relMessageFileL struct{}
 
 var (
-	relMessageFileAllColumns            = []string{"file_id", "message_timestamp"}
-	relMessageFileColumnsWithoutDefault = []string{"file_id", "message_timestamp"}
+	relMessageFileAllColumns            = []string{"message_timestamp", "file_id"}
+	relMessageFileColumnsWithoutDefault = []string{"message_timestamp", "file_id"}
 	relMessageFileColumnsWithDefault    = []string{}
-	relMessageFilePrimaryKeyColumns     = []string{"file_id", "message_timestamp"}
+	relMessageFilePrimaryKeyColumns     = []string{"message_timestamp", "file_id"}
 )
 
 type (
@@ -353,7 +353,7 @@ func RelMessageFiles(mods ...qm.QueryMod) relMessageFileQuery {
 
 // FindRelMessageFile retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindRelMessageFile(ctx context.Context, exec boil.ContextExecutor, fileID string, messageTimestamp string, selectCols ...string) (*RelMessageFile, error) {
+func FindRelMessageFile(ctx context.Context, exec boil.ContextExecutor, messageTimestamp string, fileID string, selectCols ...string) (*RelMessageFile, error) {
 	relMessageFileObj := &RelMessageFile{}
 
 	sel := "*"
@@ -361,10 +361,10 @@ func FindRelMessageFile(ctx context.Context, exec boil.ContextExecutor, fileID s
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"rel_message_file\" where \"file_id\"=? AND \"message_timestamp\"=?", sel,
+		"select %s from \"rel_message_file\" where \"message_timestamp\"=? AND \"file_id\"=?", sel,
 	)
 
-	q := queries.Raw(query, fileID, messageTimestamp)
+	q := queries.Raw(query, messageTimestamp, fileID)
 
 	err := q.Bind(ctx, exec, relMessageFileObj)
 	if err != nil {
@@ -449,8 +449,8 @@ func (o *RelMessageFile) Insert(ctx context.Context, exec boil.ContextExecutor, 
 	}
 
 	identifierCols = []interface{}{
-		o.FileID,
 		o.MessageTimestamp,
+		o.FileID,
 	}
 
 	if boil.IsDebug(ctx) {
@@ -613,7 +613,7 @@ func (o *RelMessageFile) Delete(ctx context.Context, exec boil.ContextExecutor) 
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), relMessageFilePrimaryKeyMapping)
-	sql := "DELETE FROM \"rel_message_file\" WHERE \"file_id\"=? AND \"message_timestamp\"=?"
+	sql := "DELETE FROM \"rel_message_file\" WHERE \"message_timestamp\"=? AND \"file_id\"=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -710,7 +710,7 @@ func (o RelMessageFileSlice) DeleteAll(ctx context.Context, exec boil.ContextExe
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *RelMessageFile) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindRelMessageFile(ctx, exec, o.FileID, o.MessageTimestamp)
+	ret, err := FindRelMessageFile(ctx, exec, o.MessageTimestamp, o.FileID)
 	if err != nil {
 		return err
 	}
@@ -749,16 +749,16 @@ func (o *RelMessageFileSlice) ReloadAll(ctx context.Context, exec boil.ContextEx
 }
 
 // RelMessageFileExists checks if the RelMessageFile row exists.
-func RelMessageFileExists(ctx context.Context, exec boil.ContextExecutor, fileID string, messageTimestamp string) (bool, error) {
+func RelMessageFileExists(ctx context.Context, exec boil.ContextExecutor, messageTimestamp string, fileID string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"rel_message_file\" where \"file_id\"=? AND \"message_timestamp\"=? limit 1)"
+	sql := "select exists(select 1 from \"rel_message_file\" where \"message_timestamp\"=? AND \"file_id\"=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, fileID, messageTimestamp)
+		fmt.Fprintln(writer, messageTimestamp, fileID)
 	}
-	row := exec.QueryRowContext(ctx, sql, fileID, messageTimestamp)
+	row := exec.QueryRowContext(ctx, sql, messageTimestamp, fileID)
 
 	err := row.Scan(&exists)
 	if err != nil {

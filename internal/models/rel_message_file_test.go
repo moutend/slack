@@ -149,7 +149,7 @@ func testRelMessageFilesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := RelMessageFileExists(ctx, tx, o.FileID, o.MessageTimestamp)
+	e, err := RelMessageFileExists(ctx, tx, o.MessageTimestamp, o.FileID)
 	if err != nil {
 		t.Errorf("Unable to check if RelMessageFile exists: %s", err)
 	}
@@ -175,7 +175,7 @@ func testRelMessageFilesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	relMessageFileFound, err := FindRelMessageFile(ctx, tx, o.FileID, o.MessageTimestamp)
+	relMessageFileFound, err := FindRelMessageFile(ctx, tx, o.MessageTimestamp, o.FileID)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,7 +568,7 @@ func testRelMessageFilesSelect(t *testing.T) {
 }
 
 var (
-	relMessageFileDBTypes = map[string]string{`FileID`: `TEXT`, `MessageTimestamp`: `TEXT`}
+	relMessageFileDBTypes = map[string]string{`MessageTimestamp`: `TEXT`, `FileID`: `TEXT`}
 	_                     = bytes.MinRead
 )
 

@@ -220,8 +220,8 @@ CREATE TABLE file (
 );
 
 CREATE TABLE rel_message_file (
-  file_id TEXT NOT NULL,
   message_timestamp TEXT NOT NULL,
+  file_id TEXT NOT NULL,
 
-  PRIMARY KEY(file_id, message_timestamp)
+  PRIMARY KEY(message_timestamp, file_id)
 );
