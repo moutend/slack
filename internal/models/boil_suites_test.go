@@ -15,66 +15,77 @@ func TestParent(t *testing.T) {
 	t.Run("Channels", testChannels)
 	t.Run("Messages", testMessages)
 	t.Run("Users", testUsers)
+	t.Run("UserProfiles", testUserProfiles)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("Channels", testChannelsDelete)
 	t.Run("Messages", testMessagesDelete)
 	t.Run("Users", testUsersDelete)
+	t.Run("UserProfiles", testUserProfilesDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Channels", testChannelsQueryDeleteAll)
 	t.Run("Messages", testMessagesQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
+	t.Run("UserProfiles", testUserProfilesQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Channels", testChannelsSliceDeleteAll)
 	t.Run("Messages", testMessagesSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
+	t.Run("UserProfiles", testUserProfilesSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
 	t.Run("Channels", testChannelsExists)
 	t.Run("Messages", testMessagesExists)
 	t.Run("Users", testUsersExists)
+	t.Run("UserProfiles", testUserProfilesExists)
 }
 
 func TestFind(t *testing.T) {
 	t.Run("Channels", testChannelsFind)
 	t.Run("Messages", testMessagesFind)
 	t.Run("Users", testUsersFind)
+	t.Run("UserProfiles", testUserProfilesFind)
 }
 
 func TestBind(t *testing.T) {
 	t.Run("Channels", testChannelsBind)
 	t.Run("Messages", testMessagesBind)
 	t.Run("Users", testUsersBind)
+	t.Run("UserProfiles", testUserProfilesBind)
 }
 
 func TestOne(t *testing.T) {
 	t.Run("Channels", testChannelsOne)
 	t.Run("Messages", testMessagesOne)
 	t.Run("Users", testUsersOne)
+	t.Run("UserProfiles", testUserProfilesOne)
 }
 
 func TestAll(t *testing.T) {
 	t.Run("Channels", testChannelsAll)
 	t.Run("Messages", testMessagesAll)
 	t.Run("Users", testUsersAll)
+	t.Run("UserProfiles", testUserProfilesAll)
 }
 
 func TestCount(t *testing.T) {
 	t.Run("Channels", testChannelsCount)
 	t.Run("Messages", testMessagesCount)
 	t.Run("Users", testUsersCount)
+	t.Run("UserProfiles", testUserProfilesCount)
 }
 
 func TestHooks(t *testing.T) {
 	t.Run("Channels", testChannelsHooks)
 	t.Run("Messages", testMessagesHooks)
 	t.Run("Users", testUsersHooks)
+	t.Run("UserProfiles", testUserProfilesHooks)
 }
 
 func TestInsert(t *testing.T) {
@@ -84,6 +95,8 @@ func TestInsert(t *testing.T) {
 	t.Run("Messages", testMessagesInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
+	t.Run("UserProfiles", testUserProfilesInsert)
+	t.Run("UserProfiles", testUserProfilesInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
@@ -130,28 +143,33 @@ func TestReload(t *testing.T) {
 	t.Run("Channels", testChannelsReload)
 	t.Run("Messages", testMessagesReload)
 	t.Run("Users", testUsersReload)
+	t.Run("UserProfiles", testUserProfilesReload)
 }
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Channels", testChannelsReloadAll)
 	t.Run("Messages", testMessagesReloadAll)
 	t.Run("Users", testUsersReloadAll)
+	t.Run("UserProfiles", testUserProfilesReloadAll)
 }
 
 func TestSelect(t *testing.T) {
 	t.Run("Channels", testChannelsSelect)
 	t.Run("Messages", testMessagesSelect)
 	t.Run("Users", testUsersSelect)
+	t.Run("UserProfiles", testUserProfilesSelect)
 }
 
 func TestUpdate(t *testing.T) {
 	t.Run("Channels", testChannelsUpdate)
 	t.Run("Messages", testMessagesUpdate)
 	t.Run("Users", testUsersUpdate)
+	t.Run("UserProfiles", testUserProfilesUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Channels", testChannelsSliceUpdateAll)
 	t.Run("Messages", testMessagesSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
+	t.Run("UserProfiles", testUserProfilesSliceUpdateAll)
 }

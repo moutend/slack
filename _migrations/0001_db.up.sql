@@ -1,5 +1,36 @@
 PRAGMA ENCODING="UTF-8";
 
+CREATE TABLE user_profile (
+  first_name STRING NOT NULL,
+  last_name STRING NOT NULL,
+  real_name STRING NOT NULL,
+  real_name_normalized STRING NOT NULL,
+  display_name STRING NOT NULL,
+  display_name_normalized STRING NOT NULL,
+  email STRING NOT NULL,
+  skype STRING NOT NULL,
+  phone STRING NOT NULL,
+  image24 STRING NOT NULL,
+  image32 STRING NOT NULL,
+  image48 STRING NOT NULL,
+  image72 STRING NOT NULL,
+  image192 STRING NOT NULL,
+  image512 STRING NOT NULL,
+  image_original STRING NOT NULL,
+  title STRING NOT NULL,
+  bot_id STRING NOT NULL,
+  api_app_id STRING NOT NULL,
+  status_text STRING NOT NULL,
+  status_emoji STRING NOT NULL,
+  status_expiration INT NOT NULL,
+  team STRING NOT NULL,
+
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+
+  PRIMARY KEY(display_name_normalized)
+);
+
 CREATE TABLE user (
   id STRING NOT NULL,
   team_id STRING NOT NULL,
