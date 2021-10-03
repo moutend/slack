@@ -9,6 +9,7 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/spf13/cobra"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
@@ -26,6 +27,8 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 
 	var userNameReplacer *strings.Replacer
 	var messages []*models.Message
+
+	filesMap := map[string]*models.File{}
 
 	err := dbm.Transaction(cmd.Context(), func(ctx context.Context, tx boil.ContextTransactor) error {
 		if yes, _ := cmd.Flags().GetBool("offline"); yes {
@@ -103,6 +106,32 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		var files []*struct {
+			MessageTimestamp   string `boil:"message_timestamp"`
+			Name               string `boil:"name"`
+			URLPrivateDownload string `boil:"url_private_download"`
+		}
+
+		query := `
+SELECT
+  rmf.message_timestamp AS message_timestamp
+, f.name AS name
+, f.url_private_download AS url_private_download
+FROM rel_message_file rmf
+INNER JOIN file f ON rmf.file_id = f.id
+`
+
+		if err := queries.Raw(query).Bind(ctx, tx, &files); err != nil {
+			return err
+		}
+
+		for _, file := range files {
+			filesMap[file.MessageTimestamp] = &models.File{
+				Name:               file.Name,
+				URLPrivateDownload: file.URLPrivateDownload,
+			}
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -115,6 +144,12 @@ func messageCommandRunE(cmd *cobra.Command, args []string) error {
 			utility.MessageReplacer().Replace(userNameReplacer.Replace(message.Text)),
 			utility.Ago(message.CreatedAt),
 		)
+
+		file, ok := filesMap[message.Timestamp]
+
+		if ok && file.URLPrivateDownload != "" {
+			cmd.Printf("file\t%q\t%s\n", file.Name, file.URLPrivateDownload)
+		}
 	}
 
 	return nil
