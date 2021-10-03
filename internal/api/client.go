@@ -355,6 +355,120 @@ func (c *Client) UpsertMessage(ctx context.Context, tx boil.ContextTransactor, m
 	return err
 }
 
+// UpsertFile updates or inserts given file into database.
+func (c *Client) UpsertFile(ctx context.Context, tx boil.ContextTransactor, file slack.File) error {
+	if c.debug != discard {
+		data, err := json.Marshal(file)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertFile: raw data: %q\n", string(data))
+	}
+
+	f, err := models.FindFile(ctx, tx, file.ID)
+
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	if err == sql.ErrNoRows {
+		f = &models.File{}
+	}
+
+	f.ID = file.ID
+	f.Name = file.Name
+	f.Title = file.Title
+	f.Mimetype = file.Mimetype
+	f.ImageExifRotation = int64(file.ImageExifRotation)
+	f.Filetype = file.Filetype
+	f.PrettyType = file.PrettyType
+	f.User = file.User
+	f.Mode = file.Mode
+	f.Editable = file.Editable
+	f.IsExternal = file.IsExternal
+	f.ExternalType = file.ExternalType
+	f.Size = int64(file.Size)
+	f.URLPrivate = file.URLPrivate
+	f.URLPrivateDownload = file.URLPrivateDownload
+	f.OriginalH = int64(file.OriginalH)
+	f.OriginalW = int64(file.OriginalW)
+	f.Thumb64 = file.Thumb64
+	f.Thumb80 = file.Thumb80
+	f.Thumb160 = file.Thumb160
+	f.Thumb360 = file.Thumb360
+	f.Thumb360Gif = file.Thumb360Gif
+	f.Thumb360W = int64(file.Thumb360W)
+	f.Thumb360H = int64(file.Thumb360H)
+	f.Thumb480 = file.Thumb480
+	f.Thumb480W = int64(file.Thumb480W)
+	f.Thumb480H = int64(file.Thumb480H)
+	f.Thumb720 = file.Thumb720
+	f.Thumb720W = int64(file.Thumb720W)
+	f.Thumb720H = int64(file.Thumb720H)
+	f.Thumb960 = file.Thumb960
+	f.Thumb960W = int64(file.Thumb960W)
+	f.Thumb960H = int64(file.Thumb960H)
+	f.Thumb1024 = file.Thumb1024
+	f.Thumb1024W = int64(file.Thumb1024W)
+	f.Thumb1024H = int64(file.Thumb1024H)
+	f.Permalink = file.Permalink
+	f.PermalinkPublic = file.PermalinkPublic
+	f.EditLink = file.EditLink
+	f.Preview = file.Preview
+	f.PreviewHighlight = file.PreviewHighlight
+	f.Lines = int64(file.Lines)
+	f.LinesMore = int64(file.LinesMore)
+	f.IsPublic = file.IsPublic
+	f.PublicURLShared = file.PublicURLShared
+	f.CommentsCount = int64(file.CommentsCount)
+	f.NumStars = int64(file.NumStars)
+	f.IsStarred = file.IsStarred
+
+	f.CreatedAt = file.Created.Time().UTC()
+
+	if err == sql.ErrNoRows {
+		err = f.Insert(ctx, tx, boil.Infer())
+	} else {
+		_, err = f.Update(ctx, tx, boil.Infer())
+	}
+
+	return err
+}
+
+// UpsertMessageFile updates or inserts given file into database.
+func (c *Client) UpsertMessageFile(ctx context.Context, tx boil.ContextTransactor, messageTimestamp string, file slack.File) error {
+	if c.debug != discard {
+		data, err := json.Marshal(file)
+
+		if err != nil {
+			return err
+		}
+
+		c.debug.Printf("UpsertMessageFile: raw data: %q\n", string(data))
+	}
+
+	rmf, err := models.FindRelMessageFile(ctx, tx, messageTimestamp, file.ID)
+
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	if rmf != nil {
+		return c.UpsertFile(ctx, tx, file)
+	}
+
+	rmf = &models.RelMessageFile{
+		MessageTimestamp: messageTimestamp,
+		FileID:           file.ID,
+	}
+
+	if err := rmf.Insert(ctx, tx, boil.Infer()); err != nil {
+		return err
+	}
+
+	return c.UpsertFile(ctx, tx, file)
+}
+
 // FetchMessages fetches and saves messages.
 func (c *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, channelID string) error {
 	defer c.debug.Println("FetchMessages: done")
@@ -403,6 +517,11 @@ func (c *Client) FetchMessages(ctx context.Context, tx boil.ContextTransactor, c
 			}
 			if err := c.UpsertMessage(ctx, tx, message); err != nil {
 				return fmt.Errorf("api: failed to save message: %s: %w", message.ClientMsgID, err)
+			}
+			for _, file := range message.Files {
+				if err := c.UpsertMessageFile(ctx, tx, message.Timestamp, file); err != nil {
+					return fmt.Errorf("api: failed to save message file: %w", err)
+				}
 			}
 		}
 
